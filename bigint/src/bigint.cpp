@@ -181,7 +181,7 @@ bigInt& bigInt::operator=(bigInt&& other) noexcept  {
 	//cout << &num << ' ' << &(other.num) << endl;
 	if (this != &other) {
 		sign = move(other.sign);
-		num = move(num);
+		num = move(other.num);
 	}
 	return *this;
 }
