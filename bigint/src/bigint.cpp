@@ -3,7 +3,7 @@
 #include <exception>
 #include <stdlib.h>
 using namespace std;
- 
+
 
 /// <summary>
 /// 
@@ -63,6 +63,12 @@ namespace {
 	}
 	inline bigInt abs(const bigInt& bint) {
 		return ((bint.getSign()) ? -bint : bint);
+	}
+	inline bool isNum(const string& str) {
+		if (str.find_first_not_of("0123456789", 1) != string::npos && str[0] == '-' || \
+			str.find_first_not_of("0123456789") != string::npos && str[0] != '-')
+			return false;
+		return true;
 	}
 	long long findDivisor(const bigInt& i1, const bigInt& i2) {
 		long long quotient = 0;
@@ -138,9 +144,8 @@ bigInt::bigInt(int inNum) {
 }
 bigInt::bigInt(string inNum) {
 	if (inNum.size() != 0) {
-		if (inNum.find_first_not_of("0123456789", 1) != string::npos && inNum[0] == '-' || \
-			inNum.find_first_not_of("0123456789") != string::npos && inNum[0] != '-')
-			throw invalid_argument("Nan");
+		if (!isNum(inNum))
+			throw invalid_argument("");
 
 		sign = (*(inNum.begin()) == '-');
 		if (sign) { inNum.erase(0, 1); } //delete minus
@@ -176,9 +181,9 @@ bigInt& bigInt::operator=(const bigInt& other) {
 	}
 	return *this;
 }
-bigInt& bigInt::operator=(bigInt&& other) noexcept  {
-	//cout << "Move" << '\n';
-	//cout << &num << ' ' << &(other.num) << endl;
+bigInt& bigInt::operator=(bigInt&& other) noexcept {
+	cout << "Move" << '\n';
+	cout << &num << ' ' << &(other.num) << endl;
 	if (this != &other) {
 		sign = move(other.sign);
 		num = move(other.num);
@@ -204,7 +209,10 @@ ostream& operator<<(ostream& outstr, const bigInt& bnum) {
 istream& operator>>(istream& instr, bigInt& bnum) {
 	string inNum;
 	instr >> inNum;
-	bnum = bigInt(inNum); //move assignment is called. bigInt(inNum) is temporary object &&
+	if (!isNum(inNum))
+		instr.clear(ios::badbit);
+	if(!instr.fail()) 
+		bnum = bigInt(inNum); //move assignment is called. bigInt(inNum) is temporary object &&
 	return instr;
 }
 
