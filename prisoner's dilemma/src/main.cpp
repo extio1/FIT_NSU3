@@ -1,4 +1,3 @@
-
 #include <iostream>
 #include <vector>
 #include <string>
@@ -8,18 +7,6 @@
 #include "gamestate.cpp"
 #include "strategies.cpp"
 
-class arbitrator {
-private:
-	GameState* game;
-public:
-	arbitrator(GameState* gm): game(gm) {}
-
-	void round() {};
-	void new_player(strategies strat) { 
-		PlayerFabric fabric;
-		std::shared_ptr<Player> newPlayer = fabric.make_player(strat);
-	}
-};
 
 strategies str_to_enum(char* s) {
 	std::string str(s);
@@ -29,6 +16,7 @@ strategies str_to_enum(char* s) {
 		return strategies::allcooperate;
 }
 
+//парсер недописан
 void parse(int argc, char** argv, char* mode, unsigned int* steps, std::string* cnfg, std::string* mtrx, std::vector<strategies> strats) {
 	size_t i = 1;
 	for (i; i < argc && argv[i][0] != '-'; i++) //reading only strategies
@@ -43,6 +31,9 @@ void parse(int argc, char** argv, char* mode, unsigned int* steps, std::string* 
 
 }
 
+/*
+	 
+*/
 int main(int argc, char** argv){
 	std::vector<strategies> strats;
 	strats.reserve(3);
