@@ -2,9 +2,26 @@
 #include <string>
 #include <map>
 #include <iostream>
-
+#include "strategies.cpp"
 extern class Player;
 extern enum class strategies;
+
+class arbitrator {
+private:
+	GameState& game;
+public:
+	arbitrator(GameState& gm) : game(gm) {}
+
+	//опрашивает выбор игроков, по вектору их выборов roundResult формирует очки и добавляет в GameStat.condition
+	void round() { 
+		std::vector<char> roundResult;
+		roundResult.reserve(game.get_players().size());
+		for (auto player : game.get_players())
+			roundResult.push_back(player->make_step(game));
+		//тут должен быть цикл, который берет все различные тройки и начисляет им очки по матрице GameStat.rules
+	};
+	~arbitrator() {}
+};
 
 class GameState {
 private:
@@ -45,7 +62,22 @@ public:
 	}
 
 	const std::vector<int>& get_info() const { return condition; }
+	const std::vector<std::shared_ptr<Player>> get_players() const { return players; }
 	const std::map<std::string, std::string>& get_rules() const { return rules; }
+
+	void add_players(std::vector<strategies>& strategs) {
+		PlayerFabric fabric;
+		for (strategies str : strategs) {
+			std::shared_ptr<Player> newPlayer = fabric.make_player(str);
+			players.push_back(newPlayer);
+		}
+	}
+
+	void start() {
+		arbitrator arb(*this);
+		for (int i = 0; i < nSteps; i++)
+			arb.round();
+	}
 
 	~GameState() {};
 };
