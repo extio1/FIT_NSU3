@@ -1,3 +1,4 @@
+
 #include <iostream>
 #include <vector>
 #include <string>
@@ -31,9 +32,7 @@ void parse(int argc, char** argv, char* mode, unsigned int* steps, std::string* 
 
 }
 
-/*
-	 
-*/
+
 int main(int argc, char** argv){
 	std::vector<strategies> strats;
 	strats.reserve(3);
@@ -43,7 +42,7 @@ int main(int argc, char** argv){
 	std::string configPath;
 	std::string matrixPath;
 
-	parse(argc, argv, &mode, &steps, &configPath, &matrixPath, &strats);
-	GameState dilemma(steps, configPath, matrixPath, mode);
+	//parse(argc, argv, &mode, &steps, &configPath, &matrixPath, &strats);
+	//GameState dilemma(steps, configPath, matrixPath, mode);
 
 }
