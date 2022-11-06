@@ -6,6 +6,7 @@
 extern class Player;
 extern enum class strategies;
 
+class GameState;
 class arbitrator {
 private:
 	GameState& game;
