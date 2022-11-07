@@ -1,36 +1,23 @@
-
 #include <string>
 #include <memory>
-
-extern class GameState;
+#include "gamestate.h"
+#include "strategies.h"
 enum class strategies { alldefect, allcooperate };
 
-class Player {
-public:
-	virtual char make_step(GameState&) = 0;
-	//virtual ~Player() = 0;
-};
+char alldefect::make_step(GameState& game) {
+	return 'D';
+}
 
-class alldefect : private Player {
-public:
-	char make_step(GameState& game) {
-		return 'D';
-	}
-};
+char allcooperate::make_step(GameState& game) {
+	return 'C';
+}
 
-class allcooperate : private Player {
-public:
-	char make_step(GameState& game) {
-		return 'C';
-	}
-};
+std::shared_ptr<Player> PlayerFabric::make_player(strategies strats) {
+	std::shared_ptr<Player> obj;
+	if (strats == strategies::alldefect)
+		std::shared_ptr<alldefect> obj = std::make_shared<alldefect>();
+	else if (strats == strategies::allcooperate)
+		std::shared_ptr<allcooperate> obj = std::make_shared<allcooperate>();
 
-class PlayerFabric {
-public:
-	std::shared_ptr<Player> make_player(strategies strats) {
-		if (strats == strategies::alldefect)
-			std::shared_ptr<alldefect> obj = std::make_shared<alldefect>();
-		else if(strats == strategies::allcooperate)
-			std::shared_ptr<allcooperate> obj = std::make_shared<allcooperate>();
-	}
-};
+	return obj;
+}
