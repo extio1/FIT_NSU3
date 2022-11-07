@@ -68,12 +68,12 @@ public:
 		}
 		return *this;
 	}
-	friend Matrix operator+(Matrix&, Matrix&);
-	friend Matrix operator-(Matrix, Matrix);
-	friend Matrix transp_mat(Matrix&);
-	friend Matrix operator*(Matrix, int);
-	friend Matrix operator*(Matrix&, Matrix&);
-
+	friend Matrix operator+(const Matrix&, const Matrix&);
+	friend Matrix operator-(const Matrix&, const Matrix&);
+	friend Matrix transp_mat(const Matrix&);
+	friend Matrix operator*(const Matrix&, const float);
+	friend Matrix operator*(const Matrix&, const Matrix&);
+	friend float find_max_row(const Matrix&);
 	void make_one() {
 		for(int i = 0; i < n; i++)
 			for (int j = 0; j < n; j++)
@@ -94,7 +94,7 @@ private:
 	float* mat; //сама матрица записанна в одномерный массив строка за строкой
 };
 
-Matrix operator+(Matrix& a, Matrix& b) {
+Matrix operator+(const Matrix& a, const Matrix& b) {
 	int n = a.n;
 	Matrix temp(n);
 	for (int i = 0; i < n; i++)
@@ -103,7 +103,7 @@ Matrix operator+(Matrix& a, Matrix& b) {
 	return temp;
 }
 
-Matrix operator-(Matrix a, Matrix b) {
+Matrix operator-(const Matrix& a, const Matrix& b) {
 	int n = a.n;
 	Matrix temp(n);
 	for (int i = 0; i < n; i++)
@@ -112,9 +112,9 @@ Matrix operator-(Matrix a, Matrix b) {
 	return temp;
 }
 
-Matrix transp_mat(Matrix& a) {
+Matrix transp_mat(const Matrix& a) {
 	int n = a.n;
-	Matrix tranps(n);
+	Matrix tranps(a);
 
 	for (int i = 0; i < n; i++)
 		for (int j = 0; j < n; j++)
@@ -122,16 +122,16 @@ Matrix transp_mat(Matrix& a) {
 	return tranps;
 }
 
-Matrix operator*(Matrix a, int scal) {
+Matrix operator*(const Matrix& a, const float scal) {
 	int n = a.n;
 	Matrix temp(n);
 	for (int i = 0; i < n; i++)
 		for (int j = 0; j < n; j++)
-			temp.mat[i* n + j] *= scal;
+			temp.mat[i * n + j] = a.mat[i * n + j] * scal;
 	return temp;
 }
 
-Matrix operator*(Matrix& a, Matrix& b) {
+Matrix operator*(const Matrix& a, const Matrix& b) {
 	int n = b.n;
 	Matrix temp(n);
 	temp.make_zero();
@@ -144,24 +144,47 @@ Matrix operator*(Matrix& a, Matrix& b) {
 	return temp;
 }
 
-float find_max_row(Matrix mat) {
+float find_max_row(const Matrix& m) {
 	float a_row = 0;
 	float sum_row = 0;
-	int n = mat.get_size();
-	int i = 1;//i указывает на позицию числа в строке (начиная с 1)
-	for (float* el = mat.begin(); el < mat.end(); el++) { 
-		if (i % n == 0) {
-			i = 1;
-			if (sum_row > a_row)
+	size_t size = 1ll * m.n * m.n;
+	for (size_t i = 0; i < size; i++) {
+		if (i % m.n == 0 && i > 0) {
+			if (sum_row > a_row) {
 				a_row = sum_row;
-			sum_row = 0;
+			}
+			sum_row = m.mat[i];
 		}
 		else {
-			sum_row += *el;
+			sum_row += m.mat[i];
 		}
-		i++;
 	}
+	if (sum_row > a_row)
+		a_row = sum_row;
 	return a_row;
+}
+
+Matrix inverse_matrix(const Matrix& aMat, const int m) {
+	int n = aMat.get_size();
+	Matrix rMat(n);
+	Matrix bMat(n);
+	Matrix oneMat(n);
+	oneMat.make_one();
+
+	float max_sum_row = find_max_row(aMat);
+	float max_sum_col = find_max_row(transp_mat(aMat));
+	bMat = transp_mat(aMat) * ((1.0 / max_sum_row) * (1.0 / max_sum_col));
+	rMat = oneMat - bMat * aMat;
+
+	Matrix sum_degree_r(n);
+	sum_degree_r.make_one();
+	if (m >= 2) {
+		for (int i = 1; i < m; i++) {
+			sum_degree_r = sum_degree_r + rMat;
+			rMat = rMat * rMat;
+		}
+	}
+	return sum_degree_r * bMat;
 }
 
 int main() {
@@ -175,37 +198,16 @@ int main() {
 	Matrix aMat(n);
 	aMat.entry_arr();
 
-	Matrix rMat(n);
-	Matrix bMat(n);
-	Matrix oneMat(n);
-	oneMat.make_one();
-	//теперь все необходимые матрицы созданы
-
 	timespec start, end;
 	if (timespec_get(&start, TIME_UTC) != -1);
-
-	float max_sum_row = find_max_row(aMat);
-	float max_sum_col = find_max_row(transp_mat(aMat));
-
-	bMat = transp_mat(aMat) * ((1 / max_sum_row) * (1 / max_sum_col));
-
-	rMat = oneMat - bMat * aMat;
-	bMat.print_matrix();
-
-	Matrix sum_degree_r(n);
-	sum_degree_r.make_zero();
-	if (m >= 2){
-		sum_degree_r = rMat + oneMat;
-		for (int i = 2; i < m; i++) {
-			rMat = rMat * rMat;
-			sum_degree_r = sum_degree_r + rMat;
-		}
-	}
-	Matrix inverseA(n);
-	inverseA = sum_degree_r * bMat;
+	Matrix inverseA = inverse_matrix(aMat, m);
 	if(timespec_get(&end, TIME_UTC != -1));
 
+	cout << "----------------------------------------" << endl;
 	inverseA.print_matrix();
+	cout << "----------------------------------------" << endl;
+
+	cout << "Calculatuing time: " << (end.tv_sec - start.tv_sec) + 0.000000001*(end.tv_nsec - start.tv_nsec) << "sec. ";
 
 	return 0;
 }
