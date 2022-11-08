@@ -24,7 +24,7 @@ int main() {
 	inverseA.print_matrix();
 	cout << "----------------------------------------" << endl;
 
-	cout << "Calculatuing time: " << (end.tv_sec - start.tv_sec) + 0.000000001 * (end.tv_nsec - start.tv_nsec) << "sec. ";
+	cout << "Calculation time: " << (end.tv_sec - start.tv_sec) + 0.000000001 * (end.tv_nsec - start.tv_nsec) << "sec. ";
 
 	return 0;
 }
