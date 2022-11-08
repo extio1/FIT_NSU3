@@ -1,6 +1,7 @@
 #include "matrix.h"
 #include <iostream>
 #include <string>
+#include <iomanip>
 using namespace std;
 
 Matrix::Matrix() : n(0), mat(nullptr) {}
@@ -40,7 +41,7 @@ void Matrix::entry_arr() {
 void Matrix::print_matrix() const {
 	int size = n * n;
 	for (int i = 0; i < size; i++) {
-		cout << mat[i] << ' ';
+		cout << setw(11) << mat[i] << ' ';
 		if ((i + 1) % n == 0 && i != 0)
 			cout << '\n';
 	}
@@ -123,10 +124,20 @@ Matrix operator*(const Matrix& a, const Matrix& b) {
 	Matrix temp(n);
 	temp.make_zero();
 
+	/*
 	for (int i = 0; i < n; i++)
 		for (int j = 0; j < n; j++)
 			for (int k = 0; k < n; k++)
+				temp.mat[i * n + j] += a.mat[i * n + k] * b.mat[k * n + j];*/
+
+	for (int i = 0; i < n; ++i) {
+		for (int k = 0; k < n; ++k) {
+#pragma omp simd
+			for (int j = 0; j < n; ++j) {
 				temp.mat[i * n + j] += a.mat[i * n + k] * b.mat[k * n + j];
+			}
+		}
+	}
 
 	return temp;
 }
@@ -136,7 +147,7 @@ float find_max_row(const Matrix& m) {
 	float sum_row = 0;
 	size_t size = 1ll * m.n * m.n;
 	for (size_t i = 0; i < size; i++) {
-		if (i % m.n == 0 && i > 0) {
+		if (i % m.n == 0) {
 			if (sum_row > a_row) {
 				a_row = sum_row;
 			}
@@ -161,15 +172,16 @@ Matrix inverse_matrix(const Matrix& aMat, const int m) {
 	float max_sum_row = find_max_row(aMat);
 	float max_sum_col = find_max_row(transp_mat(aMat));
 	bMat = transp_mat(aMat) * ((1.0 / max_sum_row) * (1.0 / max_sum_col));
-	rMat = oneMat - bMat * aMat;
+	rMat = oneMat - (bMat * aMat);
 
 	Matrix sum_degree_r(n);
+	Matrix degree_r = rMat;
 	sum_degree_r.make_one();
-	if (m >= 2) {
+	if (m >= 2)
 		for (int i = 1; i < m; i++) {
-			sum_degree_r = sum_degree_r + rMat;
-			rMat = rMat * rMat;
+			sum_degree_r = sum_degree_r + degree_r;
+			degree_r = degree_r * rMat;
 		}
-	}
+
 	return sum_degree_r * bMat;
 }
