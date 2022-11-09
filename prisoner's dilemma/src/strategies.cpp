@@ -1,23 +1,31 @@
+
 #include <string>
 #include <memory>
-#include "gamestate.h"
-#include "strategies.h"
-enum class strategies { alldefect, allcooperate };
 
-char alldefect::make_step(GameState& game) {
+#include "strategies.h"
+
+char alldefect::make_step() {
 	return 'D';
 }
+alldefect::~alldefect(){}
 
-char allcooperate::make_step(GameState& game) {
+char allcooperate::make_step() {
 	return 'C';
 }
+allcooperate::~allcooperate() {}
 
-std::shared_ptr<Player> PlayerFabric::make_player(strategies strats) {
-	std::shared_ptr<Player> obj;
-	if (strats == strategies::alldefect)
-		std::shared_ptr<alldefect> obj = std::make_shared<alldefect>();
-	else if (strats == strategies::allcooperate)
-		std::shared_ptr<allcooperate> obj = std::make_shared<allcooperate>();
+char titfortat::make_step() {
+	return 'C';
+}
+titfortat::~titfortat() {}
 
-	return obj;
+std::shared_ptr<Player> PlayerFabric::make_player(strategies strat) {
+	if (strat == strategies::alldefect)
+		return std::make_shared<alldefect>();
+	else if (strat == strategies::allcooperate)
+		return std::make_shared<allcooperate>();
+	else if (strat == strategies::titfortat)
+		return std::make_shared<titfortat>();
+	else
+		return nullptr;
 }
