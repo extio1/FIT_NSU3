@@ -1,4 +1,3 @@
-
 #include <iostream>
 #include <vector>
 #include <string>
@@ -35,7 +34,7 @@ void parse(int argc, char** argv, char* mode, unsigned int* steps, std::string* 
 //mode, скорее всего, не надо хранить в gamestate
 int main(int argc, char** argv) {
 	
-	std::vector<strategies> strats = { strategies::allcooperate, strategies::alldefect, strategies::titfortat };
+	std::vector<strategies> strats = { strategies::allcooperate, strategies::alldefect, strategies::titfortat, strategies::grim };
 	strats.reserve(3);
 	char mode = 't';
 	unsigned int steps = 6;
