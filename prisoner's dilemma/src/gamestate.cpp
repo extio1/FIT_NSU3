@@ -1,4 +1,3 @@
-
 #include <vector>
 #include <string>
 #include <map>
@@ -18,6 +17,8 @@ namespace {
 			return "alldefect ";
 		case(strategies::titfortat):
 			return "titfortat ";
+		case(strategies::grim):
+			return "grim ";
 		default:
 			return "none ";
 		}
@@ -79,9 +80,9 @@ void GameState::start(const std::vector<strategies>& players, const char mode) {
 	score.resize(players.size());
 	arb.create_players(players);
 
+	std::string choice;
 	if (mode == 'd') {
 		std::string consolein;
-		std::string choice;
 		int counter = 1;
 		while (std::getline(std::cin, consolein), consolein != "quit") {
 			std::vector<int> scoreRound = arb.round(&choice);
@@ -109,8 +110,9 @@ void GameState::start(const std::vector<strategies>& players, const char mode) {
 	else {
 		print_players(players);
 		for (size_t i = 0; i < nSteps; i++) {
-			renew_score(arb.round());
+			renew_score(arb.round(&choice));
 			print_info();
+			std::cout << choice << '\n';
 		}
 	}
 	print_winner(score, players);
