@@ -3,26 +3,33 @@
 #include <memory>
 
 class GameState;
-
-enum class strategies;
+enum class strategies { alldefect, allcooperate, titfortat };
 
 class Player {
 public:
-	virtual char make_step(GameState&) = 0;
+	virtual char make_step() = 0;
 	//virtual ~Player() = 0;
 };
 
-class alldefect : private Player {
+class alldefect : public Player {
 public:
-	char make_step(GameState& game);
+	char make_step();
+	~alldefect();
 };
 
-class allcooperate : private Player {
+class allcooperate : public Player {
 public:
-	char make_step(GameState& game);
+	char make_step();
+	~allcooperate();
+};
+
+class titfortat : public Player {
+public:
+	char make_step();
+	~titfortat();
 };
 
 class PlayerFabric {
 public:
-	std::shared_ptr<Player> make_player(strategies strats);
+	std::shared_ptr<Player> make_player(strategies strat);
 };
