@@ -85,9 +85,27 @@ Matrix::~Matrix() { delete[] mat; }
 Matrix operator+(const Matrix& a, const Matrix& b) {
 	int n = a.n;
 	Matrix temp(n);
+	float* aptr = a.mat;
+	float* bptr = b.mat;
+	float* tempptr = temp.mat;
+	for(int i = 0; i < n*n/8; i++){
+		asm volatile("movq %0, %%rax" :: "m"(aptr));
+		asm volatile("movq %0, %%rbx" :: "m"(bptr));
+		asm volatile("movq %0, %%rsi" :: "m"(tempptr));
+		asm volatile("vmovups (%rax), %ymm0");
+		asm volatile("vmovups (%rbx), %ymm1");
+		asm volatile("vaddps %ymm1, %ymm0, %ymm3");
+		asm volatile("vmovups %ymm0, (%rsi)");
+		aptr += 8;
+		bptr += 8;
+		tempptr += 8;
+	}
+
+	/*
 	for (int i = 0; i < n; i++)
 		for (int j = 0; j < n; j++)
 			temp.mat[i * n + j] = a.mat[i * n + j] + b.mat[i * n + j];
+	*/
 	return temp;
 }
 
