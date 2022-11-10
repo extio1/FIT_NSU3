@@ -14,27 +14,30 @@ public:
 	//virtual ~Player() = 0;
 };
 
-class alldefect : public Player {
+class alldefect : public Player { //всегда кооперироваться
 public:
 	char make_step();
 };
 
-class allcooperate : public Player {
+class allcooperate : public Player { //всегда предавать
 public:
 	char make_step();
 };
 
-class titfortat : public Player {
+class titfortat : public Player { // "глаз за глаз", если кто-то предал, то мстит, иначе кооперируется. Первый ход - С
+private:
+	std::vector<char> prevGameChoice;
 public:
 	char make_step();
+	void enter_choice(const std::vector<char>& choice);
 };
 
-class grim : public Player {
+class grim : public Player { //обидчивая стратегия, если кто-то предал, предаёт до конца игры
 private:
 	std::vector<char> prevGameChoice;
 	bool grimTrigger;
 public:
-	grim(): grimTrigger(false){}
+	grim();
 	char make_step();
 	void enter_choice(const std::vector<char>& choice);
 };
