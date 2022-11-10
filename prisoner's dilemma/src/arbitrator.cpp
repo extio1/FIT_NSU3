@@ -14,10 +14,14 @@ std::vector<int> arbitrator::round(std::string* choice) {
 	for (size_t i = 0; i < nPlayers; i++) {
 		for (size_t j = i+ 1; j < nPlayers; j++) {
 			for (size_t k = j + 1; k < nPlayers; k++) {
-				std::cout << i << ' ' << j << ' ' << k << std::endl;
+
+				//std::cout << i << ' ' << j << ' ' << k << std::endl;
+
 				char versC[4] = { roundChoice[i], roundChoice[j], roundChoice[k], '\0'};
 				std::string vers(versC);
-				std::cout << vers << '\n';
+
+				//std::cout << vers << '\n';
+
 				if(choice != nullptr) (*choice) = vers;
 				decltype(auto) rules = const_cast<std::map<std::string, std::string>&>(game.get_rules());
 				std::string score = rules[vers];
