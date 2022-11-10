@@ -1,4 +1,3 @@
-
 #include <string>
 #include <memory>
 
@@ -20,9 +19,16 @@ char allcooperate::make_step() {
 }
 
 char titfortat::make_step() {
+	for (char ch : prevGameChoice)
+		if (ch == 'D')
+			return 'D';
 	return 'C';
 }
+void titfortat::enter_choice(const std::vector<char>& choice) {
+	prevGameChoice = choice;
+}
 
+grim::grim(): grimTrigger(false) {}
 char grim::make_step() {
 	if (grimTrigger) {
 		return 'D';
@@ -35,7 +41,6 @@ char grim::make_step() {
 			}
 		}
 	}
-
 	return 'C';
 }
 void grim::enter_choice(const std::vector<char>& choice) {
