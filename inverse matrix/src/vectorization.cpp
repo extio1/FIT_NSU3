@@ -19,7 +19,7 @@ Matrix::Matrix(Matrix&& other) noexcept : n(move(other.n)) {
 
 void Matrix::entry_arr() {
 	string strmat;
-	cin.get();
+	//cin.get();
 	for (int i = 0; i < n; i++) {
 		getline(cin, strmat);
 		int k = 0;
@@ -88,44 +88,85 @@ Matrix operator+(const Matrix& a, const Matrix& b) {
 	float* aptr = a.mat;
 	float* bptr = b.mat;
 	float* tempptr = temp.mat;
-	for(int i = 0; i < n*n/8; i++){
+	for(int i = 0; i < n*n/4; i++){
 		asm volatile("movq %0, %%rax" :: "m"(aptr));
-		asm volatile("movq %0, %%rbx" :: "m"(bptr));
-		asm volatile("movq %0, %%rsi" :: "m"(tempptr));
-		asm volatile("vmovups (%rax), %ymm0");
-		asm volatile("vmovups (%rbx), %ymm1");
-		asm volatile("vaddps %ymm1, %ymm0, %ymm3");
-		asm volatile("vmovups %ymm0, (%rsi)");
-		aptr += 8;
-		bptr += 8;
-		tempptr += 8;
+		asm volatile("movq %0, %%rbx" :: "m"(bptr));	
+		asm volatile("movups (%rax), %xmm0");
+		asm volatile("movups (%rbx), %xmm1");
+		asm volatile("addps %xmm0, %xmm1");
+		asm volatile("movq %0, %%rax" :: "m"(tempptr));
+		asm volatile("movups %xmm1, (%rax)");
+		aptr += 4;
+		bptr += 4;
+		tempptr += 4;
 	}
 
-	/*
-	for (int i = 0; i < n; i++)
-		for (int j = 0; j < n; j++)
-			temp.mat[i * n + j] = a.mat[i * n + j] + b.mat[i * n + j];
-	*/
 	return temp;
 }
 
 Matrix operator-(const Matrix& a, const Matrix& b) {
 	int n = a.n;
 	Matrix temp(n);
-	for (int i = 0; i < n; i++)
-		for (int j = 0; j < n; j++)
-			temp.mat[i * n + j] = a.mat[i * n + j] - b.mat[i * n + j];
+	float* aptr = a.mat;
+	float* bptr = b.mat;
+	float* tempptr = temp.mat;
+	for(int i = 0; i < n*n/4; i++){
+		asm volatile("movq %0, %%rax" :: "m"(aptr));
+		asm volatile("movq %0, %%rbx" :: "m"(bptr));	
+		asm volatile("movups (%rax), %xmm0");
+		asm volatile("movups (%rbx), %xmm1");
+		asm volatile("subps %xmm0, %xmm1");
+		asm volatile("movq %0, %%rax" :: "m"(tempptr));
+		asm volatile("movups %xmm1, (%rax)");
+		aptr += 4;
+		bptr += 4;
+		tempptr += 4;
+	}
 	return temp;
 }
 
 Matrix transp_mat(const Matrix& a) {
 	int n = a.n;
-	Matrix tranps(a);
+	Matrix transp(n);
+	transp.make_zero();
+	float* tempptr = transp.mat;
+	
+	int j = 0;
+	for (int i = 0; i < n*n; i += 4){ //MOVLHPS
+//		asm volatile("movq %0, %%rax" :: "m"(tempptr));		
+/*
+		asm volatile("movdqu %0, %xmm0" :: "m"(colptr)); 
+		asm volatile("movlhps %xmm0, %xmm0");
+		colptr += 2;
+		asm volatile("movdqu %0, %xmm0" :: "m"(colptr));
 
-	for (int i = 0; i < n; i++)
-		for (int j = 0; j < n; j++)
-			tranps.mat[i * n + j] = a.mat[j * n + i];
-	return tranps;
+		asm volatile("movups %xmm0, (%rax)");
+
+				"movups %%xmm0, (%%rax)" :: "m"(tempptr), "m"(colptr), "m"(colptr1) : "%xmm0", "%rax", "%rbx", "%rsi"
+				);
+
+*/
+		int col = n - i % n;
+		int row = n - i // n;
+		int col_tr = row;
+		int row_tr = col; //вычислили откуда начинать считывать столбец в вектор
+						//теперь надо вектор со столбцом внутри присвоить в трансп матрицу
+						//по столбу и строке из исходной матрицы
+		float* elptr = a.mat + i;
+		for(int j = 0; j < n-1; j++){ //загружаем вектор xmm0 из 4 элементов столбца матрицы
+			asm volatile(
+				"movq %0, %%rbx\n\t"
+				"movss (%%rbx), %%xmm0\n\t"
+				"shufps $0b11100000, %%xmm0, %%xmm0\n\t" :: "m"(colptr)
+				);
+			elptr += n;
+			if(
+		}
+		tempptr += 4;
+	}
+				
+			//tranps.mat[i * n + j] = a.mat[j * n + i];
+	return transp;
 }
 
 Matrix operator*(const Matrix& a, const float scal) {
