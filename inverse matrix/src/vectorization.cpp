@@ -51,9 +51,20 @@ int Matrix::get_size() const { return n; }
 Matrix& Matrix::operator=(const Matrix& other) {
 	if (this != &other) {
 		n = other.n;
-		for (int i = 0; i < n; i++)
-			for (int j = 0; j < n; j++)
-				mat[i * n + j] = other.mat[i * n + j];
+		float* source = other.mat;
+		float* dist = mat;
+
+		asm volatile("movq %1, %%rax\n\t" //в rax и rbx были положены адреса матриц, которую изменяем и которую присваиваем, соответственно
+				  "movq %0, %%	rbx" 
+			 	  :: "m"(dist), "m"(source)
+		);	
+		for(int i = 0; i < n*n/4; i++){
+			asm volatile("movups (%rax), %xmm0\n\t" //на каждой итерации кладем 4 значения из присваиваемой матрицы
+					  "movups %xmm0, (%rbx)\n\t" //в вектор xmm0 и перемещаем эти значения по адресу изменяемой матрицы
+					  "addq $0x4, %rax\n\t" //потом прибавляем 4 к адресам, чтобы обратится к следующим 4 элементам матрицы
+					  "addq $0x4, %rbx\n\t"
+			);	  
+		}
 	}
 	return *this;
 }
@@ -67,14 +78,27 @@ Matrix& Matrix::operator=(Matrix&& other) noexcept {
 }
 
 void Matrix::make_one() {
-	for (int i = 0; i < n; i++)
-		for (int j = 0; j < n; j++)
-			mat[i * n + j] = (i == j);
+	asm volatile("movq %0, %%rax" //в rax поместили адрес начала матрицы
+		        :: "m"(mat)
+	);	
+	for(int i = 0; i < n*n/4; i++){
+		asm volatile("pxor %xmm0, %xmm0\n\t" //создали вектор из нулей
+				  "movups %xmm0, (%rax)\n\t" //присвоили в исходную матрицу				 				  
+				  "addq $0x4, %rax" //продвинулись по матрице
+		);	  
+	}
 }
 void Matrix::make_zero() {
-	for (int i = 0; i < n; i++)
-		for (int j = 0; j < n; j++)
-			mat[i * n + j] = 0;
+	asm volatile("movq %0, %%rbx" //в rbx поместили адрес начала матрицы
+		        :: "m"(mat)
+	);	
+
+	for(int i = 0; i < n*n/4; i++){
+		asm volatile("pxor %xmm0, %xmm0\n\t" //создали вектор из нулей
+				  "movups %xmm0, (%rbx)\n\t" //присвоили в исходную матрицу				 				  
+				  "addq $0x4, %rbx" //продвинулись по матрице
+		);	  
+	}
 }
 
 float* Matrix::begin() const { return mat; }
@@ -131,62 +155,34 @@ Matrix transp_mat(const Matrix& a) {
 	transp.make_zero();	
 
 	for (int i = 0; i < n*n; i += 4) { //MOVLHPS
-		int col = (i % n);
+		int col = (i % n); //строка, столбец в текущей матрице
 		int row = (i / n);
-		int col_tr = row;
-		int row_tr = col; //вычислили откуда начинать считывать столбец в вектор
-		//std::cout << i << ' ' << row << ' ' << col << std::endl;
-		float* transpptr = transp.mat + row * n + col; 		  
-		float* aptr = a.mat + row_tr * n + col_tr;
-		//std::cout << row << '-' << col << ' ' << row_tr << '-' << a.mat[row * n + col] <<' ';
-		//std::cout << *aptr  << ' ' << *(aptr+n)  << ' ' << *(aptr + n + n)  << ' ' << *(aptr +n +n +n)  << ' ';
-		//std::cout << '\n';
-/*
-		for(int j = 0; j < 4; j++){ //загружаем вектор xmm0 из 4 элементов столбца матрицы
-			std::cout << *aptr << ' ';
-			asm volatile(
-				"movss %0, %%xmm0\n\t"
-				//"movss %0, %%xmm1\n\t" //загружаем один элемент на 0 позицию вектора
-				//"shufps $0b10010000, %%xmm1, %%xmm1\n\t" //свдиг флотов внутри на 1 позицию влево
-				//"pslld %%xmm0, %%xmm1\n\t"
-				"maskmovdqu %%xmm0, %%xmm1\n\t"
-				:: "m"(*aptr) : "%xmm1"
-			);
-			aptr += n;
-		}	
-*/
-		
-		float* sec = aptr+n;
-		float* tri = aptr+n+n;
-		float* fou = aptr+n+n+n;
-		//std::cout << *aptr << *sec << '\n';
+		int col_tr = row;  //строка, столбец в транспонированной матрице
+		int row_tr = col;
+
+		float* transpptr = transp.mat + row * n + col; //	указатель, куда записываем транспонированную строку
+	  									   //равен позиции, на которой мы находися сейчас
+
+		float* fir = a.mat + row_tr * n + col_tr;	//указатели на элементы в столбце
+		float* sec = fir+n;					
+		float* tri = sec+n;				
+		float* fou = tri+n;				
 		asm volatile(
-			"movss %0, %%xmm0\n\t"
+			"movss %0, %%xmm0\n\t" //загружаем элементы столбца в регистры
 			"movss %1, %%xmm1\n\t"
-			"movss %2, %%xmm2\n\t"
+			"movss %2, %%xmm2\n\t" //тут, к сожалению, происходит cash-miss
 			"movss %3, %%xmm3\n\t"
-			"punpckldq %%xmm0, %%xmm1\n\t"
-			"punpckldq %%xmm2, %%xmm3\n\t"
-			"punpckldq %%xmm1, %%xmm3\n\t"
-			//"shufps 0b00011011, %%xmm3, %%xmm3\n\t"
-			"pshufd $0b00100111, %%xmm3, %%xmm3"
-			:: "m"(*aptr), "m"(*sec), "m"(*tri), "m"(*fou)
+			"punpckldq %%xmm0, %%xmm1\n\t" //"распаковывает младшие элементы"
+			"punpckldq %%xmm2, %%xmm3\n\t" //то есть dist будет состоять из: 
+			"punpckldq %%xmm1, %%xmm3\n\t" //dist[127..0] = {dist[31..0], sour[31..0], dist[63..32], sour[63..32]}
+			"pshufd $0b00100111, %%xmm3, %%xmm3" //переставляет значения в xmm3, в порядке заданном двоичной маской
+			:: "m"(*fir), "m"(*sec), "m"(*tri), "m"(*fou) : "%xmm0", "%xmm1", "%xmm2"
 		);
-/*
-		float* temp = new float[4];
-		asm volatile("movq %0, %%rax" :: "m"(temp));
-		asm volatile("movups %xmm3, (%rax)");
-		for(int k = 0; k < 4; k++)
-			std::cout << temp[k] << ' ';
-		std::cout << '\n';
-*/
 		asm volatile(
 			"movq %0, %%rax\n\t"
 			"movups %%xmm3, (%%rax)"
 			::"m"(transpptr)
 		);
-
-		//delete [] temp;
 	}
 
 	return transp;
