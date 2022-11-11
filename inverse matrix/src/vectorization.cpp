@@ -53,17 +53,17 @@ Matrix& Matrix::operator=(const Matrix& other) {
 		n = other.n;
 		float* source = other.mat;
 		float* dist = mat;
-
-		asm volatile("movq %1, %%rax\n\t" //в rax и rbx были положены адреса матриц, которую изменяем и которую присваиваем, соответственно
-				  "movq %0, %%	rbx" 
-			 	  :: "m"(dist), "m"(source)
-		);	
+	
 		for(int i = 0; i < n*n/4; i++){
+			asm volatile("movq %1, %%rax\n\t" //в rax и rbx были положены адреса матриц, которую изменяем и которую присваиваем, соответственно
+				     "movq %0, %%rbx" 
+				 	  :: "m"(dist), "m"(source)
+			);
 			asm volatile("movups (%rax), %xmm0\n\t" //на каждой итерации кладем 4 значения из присваиваемой матрицы
-					  "movups %xmm0, (%rbx)\n\t" //в вектор xmm0 и перемещаем эти значения по адресу изменяемой матрицы
-					  "addq $0x4, %rax\n\t" //потом прибавляем 4 к адресам, чтобы обратится к следующим 4 элементам матрицы
-					  "addq $0x4, %rbx\n\t"
-			);	  
+				"movups %xmm0, (%rbx)\n\t" //в вектор xmm0 и перемещаем эти значения по адресу изменяемой матрицы
+			);
+			source += 4;
+			dist += 4;	  
 		}
 	}
 	return *this;
@@ -78,26 +78,30 @@ Matrix& Matrix::operator=(Matrix&& other) noexcept {
 }
 
 void Matrix::make_one() {
-	asm volatile("movq %0, %%rax" //в rax поместили адрес начала матрицы
-		        :: "m"(mat)
-	);	
-	for(int i = 0; i < n*n/4; i++){
+	float* matptr = mat;	
+	for(int i = 0; i < n; i += 4){
+		asm volatile("movq %0, %%rbx" //в rbx поместили адрес начала матрицы
+				:: "m"(matptr)
+		);
+		if(i < n/2 && i+4 > n/2){ //the one is here.
+			
+		}
 		asm volatile("pxor %xmm0, %xmm0\n\t" //создали вектор из нулей
-				  "movups %xmm0, (%rax)\n\t" //присвоили в исходную матрицу				 				  
-				  "addq $0x4, %rax" //продвинулись по матрице
+				  "movups %xmm0, (%rbx)\n\t" //присвоили в исходную матрицу				 				  
 		);	  
+		matptr += 4;//продвинулись по матрице
 	}
 }
 void Matrix::make_zero() {
-	asm volatile("movq %0, %%rbx" //в rbx поместили адрес начала матрицы
-		        :: "m"(mat)
-	);	
-
+	float* matptr = mat;	
 	for(int i = 0; i < n*n/4; i++){
+		asm volatile("movq %0, %%rbx" //в rbx поместили адрес начала матрицы
+				:: "m"(matptr)
+		);
 		asm volatile("pxor %xmm0, %xmm0\n\t" //создали вектор из нулей
 				  "movups %xmm0, (%rbx)\n\t" //присвоили в исходную матрицу				 				  
-				  "addq $0x4, %rbx" //продвинулись по матрице
 		);	  
+		matptr += 4;//продвинулись по матрице
 	}
 }
 
