@@ -128,44 +128,35 @@ Matrix operator-(const Matrix& a, const Matrix& b) {
 Matrix transp_mat(const Matrix& a) {
 	int n = a.n;
 	Matrix transp(n);
-	transp.make_zero();
-	float* tempptr = transp.mat;
-	
-	int j = 0;
-	for (int i = 0; i < n*n; i += 4){ //MOVLHPS
-//		asm volatile("movq %0, %%rax" :: "m"(tempptr));		
-/*
-		asm volatile("movdqu %0, %xmm0" :: "m"(colptr)); 
-		asm volatile("movlhps %xmm0, %xmm0");
-		colptr += 2;
-		asm volatile("movdqu %0, %xmm0" :: "m"(colptr));
+	transp.make_zero();	
 
-		asm volatile("movups %xmm0, (%rax)");
-
-				"movups %%xmm0, (%%rax)" :: "m"(tempptr), "m"(colptr), "m"(colptr1) : "%xmm0", "%rax", "%rbx", "%rsi"
-				);
-
-*/
-		int col = n - i % n;
-		int row = n - i // n;
+	for (int i = 0; i < n*n; i += 4) { //MOVLHPS
+		int col = (i % n);
+		int row = (i / n);
 		int col_tr = row;
 		int row_tr = col; //вычислили откуда начинать считывать столбец в вектор
-						//теперь надо вектор со столбцом внутри присвоить в трансп матрицу
-						//по столбу и строке из исходной матрицы
-		float* elptr = a.mat + i;
-		for(int j = 0; j < n-1; j++){ //загружаем вектор xmm0 из 4 элементов столбца матрицы
+		//std::cout << i << ' ' << row << ' ' << col << std::endl;
+		float* transpptr = transp.mat + row * n + col; 		  
+		float* aptr = a.mat + row_tr * n + col_tr;
+		std::cout << row << '-' << col << ' ' << row_tr << '-' << a.mat[row * n + col] <<' ';
+		std::cout << *aptr  << ' ' << *(aptr+n)  << ' ' << *(aptr + n + n)  << ' ' << *(aptr +n +n +n)  << ' ';
+		std::cout << '\n';
+/*
+		for(int j = 0; j < 4; j++){ //загружаем вектор xmm0 из 4 элементов столбца матрицы
+			std::cout << *aptr << ' ';
 			asm volatile(
-				"movq %0, %%rbx\n\t"
-				"movss (%%rbx), %%xmm0\n\t"
-				"shufps $0b11100000, %%xmm0, %%xmm0\n\t" :: "m"(colptr)
-				);
-			elptr += n;
-			if(
-		}
-		tempptr += 4;
+				"movss %0, %%xmm0\n\t"
+				//"movss %0, %%xmm1\n\t" //загружаем один элемент на 0 позицию вектора
+				//"shufps $0b10010000, %%xmm1, %%xmm1\n\t" //свдиг флотов внутри на 1 позицию влево
+				//"pslld %%xmm0, %%xmm1\n\t"
+				"maskmovdqu %%xmm0, %%xmm1\n\t"
+				:: "m"(*aptr) : "%xmm1"
+			);
+			aptr += n;
+		}	
+*/
 	}
-				
-			//tranps.mat[i * n + j] = a.mat[j * n + i];
+
 	return transp;
 }
 
