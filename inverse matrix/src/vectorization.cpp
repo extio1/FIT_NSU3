@@ -138,9 +138,9 @@ Matrix transp_mat(const Matrix& a) {
 		//std::cout << i << ' ' << row << ' ' << col << std::endl;
 		float* transpptr = transp.mat + row * n + col; 		  
 		float* aptr = a.mat + row_tr * n + col_tr;
-		std::cout << row << '-' << col << ' ' << row_tr << '-' << a.mat[row * n + col] <<' ';
-		std::cout << *aptr  << ' ' << *(aptr+n)  << ' ' << *(aptr + n + n)  << ' ' << *(aptr +n +n +n)  << ' ';
-		std::cout << '\n';
+		//std::cout << row << '-' << col << ' ' << row_tr << '-' << a.mat[row * n + col] <<' ';
+		//std::cout << *aptr  << ' ' << *(aptr+n)  << ' ' << *(aptr + n + n)  << ' ' << *(aptr +n +n +n)  << ' ';
+		//std::cout << '\n';
 /*
 		for(int j = 0; j < 4; j++){ //загружаем вектор xmm0 из 4 элементов столбца матрицы
 			std::cout << *aptr << ' ';
@@ -155,6 +155,38 @@ Matrix transp_mat(const Matrix& a) {
 			aptr += n;
 		}	
 */
+		
+		float* sec = aptr+n;
+		float* tri = aptr+n+n;
+		float* fou = aptr+n+n+n;
+		//std::cout << *aptr << *sec << '\n';
+		asm volatile(
+			"movss %0, %%xmm0\n\t"
+			"movss %1, %%xmm1\n\t"
+			"movss %2, %%xmm2\n\t"
+			"movss %3, %%xmm3\n\t"
+			"punpckldq %%xmm0, %%xmm1\n\t"
+			"punpckldq %%xmm2, %%xmm3\n\t"
+			"punpckldq %%xmm1, %%xmm3\n\t"
+			//"shufps 0b00011011, %%xmm3, %%xmm3\n\t"
+			"pshufd $0b00100111, %%xmm3, %%xmm3"
+			:: "m"(*aptr), "m"(*sec), "m"(*tri), "m"(*fou)
+		);
+/*
+		float* temp = new float[4];
+		asm volatile("movq %0, %%rax" :: "m"(temp));
+		asm volatile("movups %xmm3, (%rax)");
+		for(int k = 0; k < 4; k++)
+			std::cout << temp[k] << ' ';
+		std::cout << '\n';
+*/
+		asm volatile(
+			"movq %0, %%rax\n\t"
+			"movups %%xmm3, (%%rax)"
+			::"m"(transpptr)
+		);
+
+		//delete [] temp;
 	}
 
 	return transp;
