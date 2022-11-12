@@ -231,16 +231,50 @@ Matrix operator*(const Matrix& a, const Matrix& b) {
 	int n = b.n;
 	Matrix temp(n);
 	temp.make_zero();
-
-	for (int i = 0; i < n; ++i) {
-		for (int k = 0; k < n; ++k) {
-#pragma omp simd
-			for (int j = 0; j < n; ++j) {
-				temp.mat[i * n + j] += a.mat[i * n + k] * b.mat[k * n + j];
+//сравнить размер кэша и матрицы, влезет ли она в него?
+	
+	float* aptr = a.mat;
+	float* bptr;
+	float* resptr;
+	//std::cout << "--=-=-=-= " << *aptr;
+	asm volatile("movq %0, %%r8\n\t"
+		   //"movq %1, %%r9\n\t"
+		   //"movq %2, %%r10\n\t"
+		   :: "m"(aptr), "m"(aptr), "m"(bptr)
+	);
+	//для каждой строки в result мы обходим всю матрицу b. При этом для каждой строки из result операции в матрице a
+	//происходят над той же строкой (по индексам), что и в result
+	for(int k = 0; k < n; k++){ //k - индекс строки в матрицах result и a
+		float* beginstr = temp.mat + n * k;
+		resptr = beginstr;
+		bptr = b.mat;
+		for(int j = 0; j < n*n; j += 4) {//обходим матрицу b
+			if(j % n == 0 && j > 0){//когда перешли на новую строку при обходе b, переходим к новому элементу матрицы a
+				aptr += 1;
 			}
+			asm volatile("movq %0, %%r8\n\t"
+				   "movq %1, %%r9\n\t"
+				   "movq %2, %%r10\n\t"
+				   :: "m" (bptr), "m"(aptr), "m"(resptr)
+			);
+			asm volatile("movups (%r8), %xmm0\n\t" //загружаем элементы из матрицы b
+				   "movss (%r9), %xmm1\n\t" 
+				   "pshufd $0b00000000, %xmm1, %xmm1\n\t" //загружаем элемент из матрицы a
+				   "mulps %xmm0, %xmm1\n\t"
+				   "movups (%r10), %xmm3\n\t"
+				   "addps %xmm1, %xmm3\n\t"
+				   "movups %xmm3, (%r10)"   
+			);
+			
+			bptr += 4;
+			if((j % n) + 4 == n){
+				resptr = beginstr;
+			} else {
+				resptr += 4;
+			} 	
 		}
+		aptr++;
 	}
-
 	return temp;
 }
 
