@@ -60,7 +60,7 @@ Matrix& Matrix::operator=(const Matrix& other) {
 				 	  :: "m"(dist), "m"(source)
 			);
 			asm volatile("movups (%rax), %xmm0\n\t" //на каждой итерации кладем 4 значения из присваиваемой матрицы
-				"movups %xmm0, (%rbx)\n\t" //в вектор xmm0 и перемещаем эти значения по адресу изменяемой матрицы
+				  "movups %xmm0, (%rbx)\n\t" //в вектор xmm0 и перемещаем эти значения по адресу изменяемой матрицы
 			);
 			source += 4;
 			dist += 4;	  
@@ -77,31 +77,32 @@ Matrix& Matrix::operator=(Matrix&& other) noexcept {
 	return *this;
 }
 
-void Matrix::make_one() {
+void Matrix::make_one() { //помещать по маске единицу в нужную часть вектора
 	float* matptr = mat;	
 	for(int i = 0; i < n; i += 4){
 		asm volatile("movq %0, %%rbx" //в rbx поместили адрес начала матрицы
 				:: "m"(matptr)
 		);
-		if(i < n/2 && i+4 > n/2){ //the one is here.
+		//if(i < n/2 && i+4 > n/2){ //the one is here.
 			
-		}
-		asm volatile("pxor %xmm0, %xmm0\n\t" //создали вектор из нулей
-				  "movups %xmm0, (%rbx)\n\t" //присвоили в исходную матрицу				 				  
-		);	  
+		//}else{
+			asm volatile("pxor %xmm0, %xmm0\n\t" //создали вектор из нулей
+					  "movups %xmm0, (%rbx)\n\t" //присвоили в исходную матрицу				 				  
+			);	  
+		//}
 		matptr += 4;//продвинулись по матрице
 	}
 }
 void Matrix::make_zero() {
-	float* matptr = mat;	
+	float* matptr = mat;
+	asm volatile("movq %0, %%rbx" //в rbx поместили адрес начала матрицы
+		:: "m"(matptr)
+	);	
 	for(int i = 0; i < n*n/4; i++){
-		asm volatile("movq %0, %%rbx" //в rbx поместили адрес начала матрицы
-				:: "m"(matptr)
-		);
 		asm volatile("pxor %xmm0, %xmm0\n\t" //создали вектор из нулей
-				  "movups %xmm0, (%rbx)\n\t" //присвоили в исходную матрицу				 				  
+			   "movups %xmm0, (%rbx)\n\t" //присвоили в исходную матрицу	
+			   "addq $16, %rbx"		//продвинулись по матрице	 				  
 		);	  
-		matptr += 4;//продвинулись по матрице
 	}
 }
 
@@ -116,17 +117,20 @@ Matrix operator+(const Matrix& a, const Matrix& b) {
 	float* aptr = a.mat;
 	float* bptr = b.mat;
 	float* tempptr = temp.mat;
-	for(int i = 0; i < n*n/4; i++){
-		asm volatile("movq %0, %%rax" :: "m"(aptr));
-		asm volatile("movq %0, %%rbx" :: "m"(bptr));	
-		asm volatile("movups (%rax), %xmm0");
-		asm volatile("movups (%rbx), %xmm1");
-		asm volatile("addps %xmm0, %xmm1");
-		asm volatile("movq %0, %%rax" :: "m"(tempptr));
-		asm volatile("movups %xmm1, (%rax)");
-		aptr += 4;
-		bptr += 4;
-		tempptr += 4;
+	int size = n*n/4;
+	asm volatile("movq %0, %%r8\n\t"
+			   "movq %1, %%r9\n\t"
+			   "movq %2, %%r10" :: "m"(aptr), "m"(bptr) ,"m"(tempptr)
+	);
+	for(int i = 0; i < size; i++){
+		asm volatile("movups (%r8), %xmm0\n\t"
+		 	   "movups (%r9), %xmm1\n\t"
+			   "addps %xmm0, %xmm1\n\t"
+			   "movups %xmm1, (%r10)\n\t"
+			   "addq $16, %r8\n\t"
+			   "addq $16, %r9\n\t"
+			   "addq $16, %r10\n\t"
+		);
 	}
 
 	return temp;
@@ -138,17 +142,20 @@ Matrix operator-(const Matrix& a, const Matrix& b) {
 	float* aptr = a.mat;
 	float* bptr = b.mat;
 	float* tempptr = temp.mat;
-	for(int i = 0; i < n*n/4; i++){
-		asm volatile("movq %0, %%rax" :: "m"(aptr));
-		asm volatile("movq %0, %%rbx" :: "m"(bptr));	
-		asm volatile("movups (%rax), %xmm0");
-		asm volatile("movups (%rbx), %xmm1");
-		asm volatile("subps %xmm0, %xmm1");
-		asm volatile("movq %0, %%rax" :: "m"(tempptr));
-		asm volatile("movups %xmm1, (%rax)");
-		aptr += 4;
-		bptr += 4;
-		tempptr += 4;
+	int size = n*n/4;
+	asm volatile("movq %0, %%r8\n\t"
+			   "movq %1, %%r9\n\t"
+			   "movq %2, %%r10" :: "m"(aptr), "m"(bptr) ,"m"(tempptr)
+	);
+	for(int i = 0; i < size; i++){
+		asm volatile("movups (%r8), %xmm0\n\t"
+		 	   "movups (%r9), %xmm1\n\t"
+			   "subps %xmm0, %xmm1\n\t"
+			   "movups %xmm1, (%r10)\n\t"
+			   "addq $16, %r8\n\t"
+			   "addq $16, %r9\n\t"
+			   "addq $16, %r10\n\t"
+		);
 	}
 	return temp;
 }
@@ -179,7 +186,7 @@ Matrix transp_mat(const Matrix& a) {
 			"punpckldq %%xmm0, %%xmm1\n\t" //"распаковывает младшие элементы"
 			"punpckldq %%xmm2, %%xmm3\n\t" //то есть dist будет состоять из: 
 			"punpckldq %%xmm1, %%xmm3\n\t" //dist[127..0] = {dist[31..0], sour[31..0], dist[63..32], sour[63..32]}
-			"pshufd $0b00100111, %%xmm3, %%xmm3" //переставляет значения в xmm3, в порядке заданном двоичной маской
+			"pshufd $0b00100111, %%xmm3, %%xmm3" //переставляет значения в xmm3, в порядке, заданном двоичной маской
 			:: "m"(*fir), "m"(*sec), "m"(*tri), "m"(*fou) : "%xmm0", "%xmm1", "%xmm2"
 		);
 		asm volatile(
@@ -195,22 +202,35 @@ Matrix transp_mat(const Matrix& a) {
 Matrix operator*(const Matrix& a, const float scal) {
 	int n = a.n;
 	Matrix temp(n);
-	for (int i = 0; i < n; i++)
-		for (int j = 0; j < n; j++)
-			temp.mat[i * n + j] = a.mat[i * n + j] * scal;
-	return temp;
+	float* inmatptr = a.mat;
+	float* outmatptr = temp.mat;
+	asm volatile("movss %0, %%xmm0\n\t" //в нулевую позицию вектора поместили скаляр
+	            "pshufd $0b00000000, %%xmm0, %%xmm0" //заполнили весь вектор значением из 1 ячейки
+		  ::"m"(scal));
+		  /*
+	float* test = new float[4];
+	asm volatile("movups %%xmm0, (%%rax)" :: "r"(test));
+	for(int i = 0; i < 4; i++)
+		std::cout << test[i] << endl;*/
+		
+	asm volatile("movq %0, %%rbx" :: "m"(inmatptr));
+	asm volatile("movq %0, %%r8" :: "m"(outmatptr));
+	for (int i = 0; i < n*n/4; i++){
+		asm volatile("movups (%rbx), %xmm1\n\t"
+			   "mulps %xmm0, %xmm1\n\t"
+			   "movups %xmm1, (%r8)\n\t"
+			   "addq $16, %rbx\n\t"
+			   "addq $16, %r8"
+		);		
+	}
+	
+	return temp;  
 }
 
 Matrix operator*(const Matrix& a, const Matrix& b) {
 	int n = b.n;
 	Matrix temp(n);
 	temp.make_zero();
-
-	/*
-	for (int i = 0; i < n; i++)
-		for (int j = 0; j < n; j++)
-			for (int k = 0; k < n; k++)
-				temp.mat[i * n + j] += a.mat[i * n + k] * b.mat[k * n + j];*/
 
 	for (int i = 0; i < n; ++i) {
 		for (int k = 0; k < n; ++k) {
