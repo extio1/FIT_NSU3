@@ -86,11 +86,11 @@ int main(int argc, char** argv) {
 	char mode = 'd';
 	int steps = 10;
 	std::string configPath;
-	std::string matrixPath;
-	parse(argc, argv, &mode, &steps, &configPath, &matrixPath, &strats);
+	std::string matrixPath = "C:/Users/User/source/repos/oop_prakt2/test/wrongformatmatirx.txt";
+	//parse(argc, argv, &mode, &steps, &configPath, &matrixPath, &strats);
 	if (strats.size() > 3)
 		mode = 't';
 
 	GameState dilemma(matrixPath, configPath);
-	dilemma.start(strats, steps, mode);
+	//dilemma.start(strats, steps, mode);
 }
