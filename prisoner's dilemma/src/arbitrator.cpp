@@ -59,7 +59,7 @@ void arbitrator::match() {
 	choice = roundChoice;
 	scoreround = roundScore;
 
-	for (int i = 0; i < 3; i++) { //всем игрокам передали информацию об их опонентах
+	for (int i = 0; i < 3; i++) { //всем игрокам передали информацию об их опонентах и изменили счет за раунд
 		players[i]->enter_choice(std::vector<char>{roundChoice[(i + 1) % 3], roundChoice[(i + 2) % 3]});
 		players[i]->enter_score(std::vector<int>{roundScore[(i + 1) % 3], roundScore[(i + 2) % 3]});
 	}
@@ -76,17 +76,19 @@ void arbitrator::match(const size_t pl1, const size_t pl2, const size_t pl3, con
 
 		std::vector<int> roundScore = calc_score_by_choice(roundChoice, game.get_rules());
 
-		for (int i = 0; i < 3; i++) { //всем игрокам передали информацию об их опонентах и изменили счет за раунд
+		for (int i = 0; i < 3; i++) { 
 			players[currplayers[i]]->enter_choice(std::vector<char>{roundChoice[(i + 1) % 3], roundChoice[(i + 2) % 3]});
 			players[currplayers[i]]->enter_score(std::vector<int>{roundScore[(i + 1) % 3], roundScore[(i + 2) % 3]});
 			scoreround[i] += roundScore[i];
 		}
 	}
+
 	std::cout << pl1 << ' ' << pl2 << ' ' << pl3 << '\n';
 	for (int i = 0; i < 3; i++) {
 		std::cout << scoreround[i] << ' ';
 	}
 	std::cout << "\n\n";
+
 	for (int i = 0; i < 3; i++) { //изменили общий счет игры и затерли всю информацию у игроков про этот раунд
 		scoregame[currplayers[i]] += scoreround[i];
 		players[currplayers[i]]->clear();
@@ -102,42 +104,6 @@ void arbitrator::tournament(const int nsteps) {
 				match(i, j, k, nsteps);
 			}
 		}
-	}
-}
-
-void arbitrator::round_tour(std::string* choice) {
-	size_t nPlayers = players.size();
-	std::vector<char> roundChoice(nPlayers);
-	std::vector<int> roundScore(nPlayers); //vector stored by zeros automatically.
-	size_t i = 0;
-	for (auto player : players)
-		roundChoice[i++] = player->make_step();
-
-	const int ASCII_TO_INT = 48;
-	for (size_t i = 0; i < nPlayers; i++) {
-		for (size_t j = i+ 1; j < nPlayers; j++) {
-			for (size_t k = j + 1; k < nPlayers; k++) {
-
-				//std::cout << i << ' ' << j << ' ' << k << std::endl;
-
-				char versC[4] = { roundChoice[i], roundChoice[j], roundChoice[k], '\0'};
-				std::string vers(versC);
-
-				//std::cout << vers << '\n';
-
-				if(choice != nullptr) (*choice) = vers;
-				decltype(auto) rules = const_cast<std::map<std::string, std::string>&>(game.get_rules());
-				std::string score = rules[vers];
-				roundScore[i] += score[0] - ASCII_TO_INT;
-				roundScore[j] += score[1] - ASCII_TO_INT;
-				roundScore[k] += score[2] - ASCII_TO_INT;
-			}
-		}
-	}
-
-	for (auto player : players) {
-		player->enter_choice(roundChoice);
-		player->enter_score(roundScore);
 	}
 }
 
