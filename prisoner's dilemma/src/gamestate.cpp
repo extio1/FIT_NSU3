@@ -55,7 +55,7 @@ void assign_matrix(std::string mtx, GameState& game) {
 	std::string key;
 	std::string value;
 	if (in.is_open()) {
-		while (!in.eof()) {
+		while (!in.eof() && !in.fail()) {
 			getline(in, key, ';');
 			getline(in, value, ';');
 			if (check_key(key) && check_value(value))
@@ -68,16 +68,16 @@ void assign_matrix(std::string mtx, GameState& game) {
 		}
 		else if (in.fail()) {
 			std::cerr << "Input file values are wrong\n";
-			exit(0);
+			exit(1);
 		}
 		else {
 			std::cerr << "Error while reading the file\n";
-			exit(0);
+			exit(1);
 		}
 	}
 	else {
 		std::cerr << "Matrix file haven't read\n";
-		exit(0);
+		exit(1);
 	}
 	in.close();
 }
