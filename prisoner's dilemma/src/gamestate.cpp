@@ -20,6 +20,10 @@ namespace {
 			return "titfortat ";
 		case(strategies::grim):
 			return "grim ";
+		case(strategies::random):
+			return "random ";
+		case(strategies::detective):
+			return "detective ";
 		default:
 			return "none ";
 		}
@@ -50,9 +54,13 @@ namespace {
 			return strategies::grim;
 		else if (str == "titfortat")
 			return strategies::titfortat;
+		else if (str == "random")
+			return strategies::random;
+		else if (str == "detective")
+			return strategies::detective;
 	}
 	void parse(int argc, char** argv, char* mode, int* steps, std::string* cnfgs, std::string* mtrx, std::vector<strategies>* strats) {
-		size_t i = 1;
+		int i = 1;
 		for (i; i < argc && argv[i][0] != '-'; i++) //reading only strategies
 			strats->push_back(str_to_enum(argv[i]));
 		if (i < 3) {
@@ -88,15 +96,15 @@ namespace {
 		}
 	}
 	bool check_key(std::string& key) {
-		for (int i = 0; i < key.size(); i++) {
+		for (size_t i = 0; i < key.size(); i++) {
 			if (i > 3 || (key[i] != 'D' && key[i] != 'C'))
 				return false;
 		}
 		return true;
 	}
 	bool check_value(std::string& value) {
-		for (int i = 0; i < value.size(); i++) {
-			if (i > 3 || !('0' < value[i] < '9'))
+		for (size_t i = 0; i < value.size(); i++) {
+			if (i > 3 || !('0' < value[i] && value[i] < '9'))
 				return false;
 		}
 		return true;
@@ -170,7 +178,7 @@ void GameState::print_info() const {
 }
 
 void GameState::renew_score(const std::vector<int>& newScore) {;
-	for (int i = 0; i < score.size(); i++)
+	for (size_t i = 0; i < score.size(); i++)
 		score[i] += newScore[i];
 }
 
@@ -179,7 +187,7 @@ const std::map<std::string, std::string>& GameState::get_rules() const { return 
 
 void GameState::start(const std::vector<strategies>& players, const char mode) {
 	arbitrator arb(*this);
-	score.resize(players.size());
+
 	arb.create_players(players);
 
 	std::string choice;
@@ -187,37 +195,32 @@ void GameState::start(const std::vector<strategies>& players, const char mode) {
 		std::string consolein;
 		int counter = 1;
 		do {
-			std::vector<int> scoreRound = arb.round(&choice);
-			renew_score(scoreRound);
+			arb.match();
 			std::cout << "=================================\n";
 			std::cout << "Round #" << counter << ":\n";
 			print_players(players);
 			std::cout << "Choice : ";
-			std::cout << choice << '\n';
+			arb.show_choice();
 			std::cout << "Score for this round : ";
-			for (int el : scoreRound)
-				std::cout << el << ' ';
+			arb.show_score_round();
 			std::cout << "\nScore for the game : ";
-			print_info();
+			arb.show_score_game();
 			std::cout << "=================================\n";
 			counter++;
 		} while ((std::getline(std::cin, consolein), consolein != "quit"));
 	}
 	else if (mode == 'f') {
 		for (size_t i = 0; i < nSteps; i++)
-			renew_score(arb.round());
+			arb.match();
 		print_players(players);
-		print_info();
+		arb.show_score_game();
 	}
 	else {
 		print_players(players);
-		for (size_t i = 0; i < nSteps; i++) {
-			renew_score(arb.round(&choice));
-			print_info();
-			std::cout << choice << '\n';
-		}
+		arb.tournament(nSteps);
+		arb.show_score_game();
 	}
-	print_winner(score, players);
+	std::cout << to_string(players[arb.who_winner()]);
 }
 
 GameState::~GameState() {};
