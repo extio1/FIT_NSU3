@@ -19,7 +19,7 @@ Matrix::Matrix(Matrix&& other) noexcept : n(move(other.n)) {
 
 void Matrix::entry_arr() {
 	string strmat;
-	//cin.get();
+	cin.get();
 	for (int i = 0; i < n; i++) {
 		getline(cin, strmat);
 		int k = 0;
@@ -78,19 +78,18 @@ Matrix& Matrix::operator=(Matrix&& other) noexcept {
 }
 
 void Matrix::make_one() { //помещать по маске единицу в нужную часть вектора
-	float* matptr = mat;	
-	for(int i = 0; i < n; i += 4){
-		asm volatile("movq %0, %%rbx" //в rbx поместили адрес начала матрицы
-				:: "m"(matptr)
-		);
-		//if(i < n/2 && i+4 > n/2){ //the one is here.
-			
-		//}else{
-			asm volatile("pxor %xmm0, %xmm0\n\t" //создали вектор из нулей
-					  "movups %xmm0, (%rbx)\n\t" //присвоили в исходную матрицу				 				  
-			);	  
-		//}
-		matptr += 4;//продвинулись по матрице
+	float* matptr = mat;
+	asm volatile("movq %0, %%rbx" //в rbx поместили адрес начала матрицы
+		:: "m"(matptr)
+	);	
+	for(int i = 0; i < n*n/4; i++){
+		asm volatile("pxor %xmm0, %xmm0\n\t" //создали вектор из нулей
+			   "movups %xmm0, (%rbx)\n\t" //присвоили в исходную матрицу	
+			   "addq $16, %rbx"		//продвинулись по матрице	 				  
+		);	  
+	}
+	for(int i = 0; i < n; i++){
+		mat[i *n + i] = 1;
 	}
 }
 void Matrix::make_zero() {
@@ -144,14 +143,14 @@ Matrix operator-(const Matrix& a, const Matrix& b) {
 	float* tempptr = temp.mat;
 	int size = n*n/4;
 	asm volatile("movq %0, %%r8\n\t"
-			   "movq %1, %%r9\n\t"
-			   "movq %2, %%r10" :: "m"(aptr), "m"(bptr) ,"m"(tempptr)
+		   "movq %1, %%r9\n\t"
+		   "movq %2, %%r10" :: "m"(aptr), "m"(bptr) ,"m"(tempptr)
 	);
 	for(int i = 0; i < size; i++){
 		asm volatile("movups (%r8), %xmm0\n\t"
 		 	   "movups (%r9), %xmm1\n\t"
-			   "subps %xmm0, %xmm1\n\t"
-			   "movups %xmm1, (%r10)\n\t"
+			   "subps %xmm1, %xmm0\n\t"
+			   "movups %xmm0, (%r10)\n\t"
 			   "addq $16, %r8\n\t"
 			   "addq $16, %r9\n\t"
 			   "addq $16, %r10\n\t"
@@ -298,6 +297,7 @@ float find_max_row(const Matrix& m) {
 	return a_row;
 }
 
+
 Matrix inverse_matrix(const Matrix& aMat, const int m) {
 	int n = aMat.get_size();
 	Matrix rMat(n);
@@ -305,11 +305,17 @@ Matrix inverse_matrix(const Matrix& aMat, const int m) {
 	Matrix oneMat(n);
 	oneMat.make_one();
 
+	Matrix transpA = transp_mat(aMat);
 	float max_sum_row = find_max_row(aMat);
-	float max_sum_col = find_max_row(transp_mat(aMat));
-	bMat = transp_mat(aMat) * ((1.0 / max_sum_row) * (1.0 / max_sum_col));
-	rMat = oneMat - (bMat * aMat);
+	float max_sum_col = find_max_row(transpA);
+	bMat = transpA * ((1.0 / max_sum_row) * (1.0 / max_sum_col));
 
+	rMat = oneMat - (bMat * aMat);
+	
+	//oneMat.print_matrix();
+	//(bMat * aMat).print_matrix();
+	//rMat.print_matrix();
+	
 	Matrix sum_degree_r(n);
 	Matrix degree_r = rMat;
 	sum_degree_r.make_one();
