@@ -4,7 +4,7 @@
 #include <iostream>
 #include <map>
 
-namespace{
+namespace {
 	std::vector<int> calc_score_by_choice(const std::vector<char>& choice, const std::map<std::string, std::string>& rules) {
 		const int ASCII_TO_INT = 48;
 
@@ -48,7 +48,7 @@ size_t arbitrator::who_winner() const {
 	return pos;
 }
 
-void arbitrator::match() {
+void arbitrator::match() { //завести константу - количество игроков
 	std::vector<char> roundChoice(3);
 	for (int i = 0; i < 3; i++)
 		roundChoice[i] = players[i]->make_step();
@@ -66,8 +66,8 @@ void arbitrator::match() {
 }
 
 void arbitrator::match(const size_t pl1, const size_t pl2, const size_t pl3, const int nsteps) { //под раундом подразумевается
-	std::vector<char> roundChoice(3);                                                   //nsores игр pl1, pl2, pl3
-	std::vector<size_t> currplayers{ pl1, pl2, pl3 };										//против друг друга
+	std::vector<char> roundChoice(3);                                                        //nsores игр pl1, pl2, pl3
+	std::vector<size_t> currplayers{ pl1, pl2, pl3 };										 //против друг друга
 	int n = players.size();
 
 	for (int k = 0; k < nsteps; k++) {
@@ -76,7 +76,7 @@ void arbitrator::match(const size_t pl1, const size_t pl2, const size_t pl3, con
 
 		std::vector<int> roundScore = calc_score_by_choice(roundChoice, game.get_rules());
 
-		for (int i = 0; i < 3; i++) { 
+		for (int i = 0; i < 3; i++) {
 			players[currplayers[i]]->enter_choice(std::vector<char>{roundChoice[(i + 1) % 3], roundChoice[(i + 2) % 3]});
 			players[currplayers[i]]->enter_score(std::vector<int>{roundScore[(i + 1) % 3], roundScore[(i + 2) % 3]});
 			scoreround[i] += roundScore[i];
@@ -99,8 +99,8 @@ void arbitrator::match(const size_t pl1, const size_t pl2, const size_t pl3, con
 void arbitrator::tournament(const int nsteps) {
 	size_t nPlayers = players.size();
 	for (size_t i = 0; i < nPlayers; i++) {
-		for (size_t j = i+1; j < nPlayers; j++) {
-			for (size_t k = j+1; k < nPlayers; k++) {
+		for (size_t j = i + 1; j < nPlayers; j++) {
+			for (size_t k = j + 1; k < nPlayers; k++) {
 				match(i, j, k, nsteps);
 			}
 		}
@@ -111,10 +111,11 @@ void arbitrator::create_players(const std::vector<strategies>& strategs) {
 	PlayerFabric fabric;
 	players.reserve(strategs.size());
 	scoregame.resize(strategs.size());
+
 	for (strategies s : strategs) {
 		players.push_back(fabric.make_player(s));
 	}
 }
 
-arbitrator::arbitrator(GameState& gm): game(gm), scoregame(3), scoreround(3), choice(3) {}
-arbitrator::~arbitrator(){}
+arbitrator::arbitrator(GameState& gm) : game(gm), scoregame(3), scoreround(3), choice(3) {}
+arbitrator::~arbitrator() {}
