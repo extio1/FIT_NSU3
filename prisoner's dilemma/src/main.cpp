@@ -8,7 +8,9 @@
 #include "strategies.h"
 #include "gamestate.h"
 
-std::string to_string(strategies st) {
+//виртуальный деструктор!
+ 
+std::string to_string(strategies st) { //перенести перевод enum string в отдельный заголовочный файл
 	switch (st) {
 	case(strategies::allcooperate):
 		return "allcooperate ";
@@ -27,7 +29,7 @@ std::string to_string(strategies st) {
 	}
 }
 
-strategies str_to_enum(char* s) {
+strategies str_to_enum(char* s) { //добавить значение по умолчанию
 	std::string str(s);
 	if (str == "alldefect")
 		return strategies::alldefect;
@@ -86,11 +88,11 @@ int main(int argc, char** argv) {
 	char mode = 'd';
 	int steps = 10;
 	std::string configPath;
-	std::string matrixPath = "C:/Users/User/source/repos/oop_prakt2/test/wrongformatmatirx.txt";
-	//parse(argc, argv, &mode, &steps, &configPath, &matrixPath, &strats);
+	std::string matrixPath; // = "C:/Users/User/source/repos/oop_prakt2/test/wrongformatmatirx.txt";
+	parse(argc, argv, &mode, &steps, &configPath, &matrixPath, &strats);
 	if (strats.size() > 3)
 		mode = 't';
 
 	GameState dilemma(matrixPath, configPath);
-	//dilemma.start(strats, steps, mode);
+	dilemma.start(strats, steps, mode);
 }
