@@ -8,8 +8,8 @@
 void Player::enter_choice(const std::vector<char>& choice) {
 	return;
 }
-void Player::enter_score(const std::vector<int>& score){}
-void Player::clear(){}
+void Player::enter_score(const std::vector<int>& score) {}
+void Player::clear() {}
 
 char random::make_step() {
 	srand(time(NULL));
@@ -45,8 +45,9 @@ void titfortat::clear() {
 	for (int i = 0; i < 2; i++)
 		prevGameChoice[i] = 0;
 }
+titfortat::~titfortat(){};
 
-grim::grim(): grimTrigger(false) {}
+grim::grim() : grimTrigger(false) {}
 char grim::make_step() {
 	if (grimTrigger) {
 		return 'D';
@@ -69,8 +70,9 @@ void grim::clear() {
 	for (int i = 0; i < 2; i++)
 		prevGameChoice[i] = 0;
 }
+grim::~grim(){};
 
-detective::detective(): nstep(1), mode(0) {}
+detective::detective() : nstep(1), mode(0) {}
 char detective::like_titfortat() {
 	for (char ch : choicehistory) {
 		if (ch == 'D') {
@@ -104,7 +106,7 @@ char detective::make_step() {
 			}
 		}
 		else {
-			for(char c : choicehistory)
+			for (char c : choicehistory)
 				if (c == 'D') {
 					mode = 2;
 					return like_titfortat();
@@ -118,10 +120,12 @@ void detective::enter_choice(const std::vector<char>& choice) {
 	if (nstep <= 4) { //в первые ходы накапливает информацию, затем начинает запоминать только предыдущий раунд
 		for (char c : choice)
 			choicehistory.push_back(c);
-	} else {
+	}
+	else {
 		choicehistory = choice;
 	}
 }
+detective::~detective(){}
 
 std::shared_ptr<Player> PlayerFabric::make_player(strategies strat) {
 	if (strat == strategies::alldefect)
