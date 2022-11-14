@@ -86,7 +86,7 @@ GameState::GameState() {
 	rules = { {"CCC", "777"}, {"CCD", "339"}, {"CDC", "393"}, {"DCC", "933"},
 					{"CDD", "055"}, {"DCD", "505"}, {"DDC", "550"}, {"DDD", "111"} };
 }
-GameState::GameState(std::string mtx, std::string cnfg){
+GameState::GameState(std::string mtx, std::string cnfg) {
 	if (!cnfg.empty()) {
 		configPath = cnfg;
 	}
@@ -100,7 +100,7 @@ GameState::GameState(std::string mtx, std::string cnfg){
 
 const std::map<std::string, std::string>& GameState::get_rules() const { return rules; }
 
-void GameState::start(const std::vector<strategies>& players, const int nSteps, const char mode) {
+void GameState::start(const std::vector<strategies>& players, const int nSteps, const char mode) { //добавить try-catch к create_players
 	arbitrator arb(*this);
 	arb.create_players(players);
 
