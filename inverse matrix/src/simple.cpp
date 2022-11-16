@@ -129,15 +129,11 @@ Matrix operator*(const Matrix& a, const Matrix& b) {
 		for (int j = 0; j < n; j++)
 			for (int k = 0; k < n; k++)
 				temp.mat[i * n + j] += a.mat[i * n + k] * b.mat[k * n + j];*/
-
-	for (int i = 0; i < n; ++i) {
-		for (int k = 0; k < n; ++k) {
+	for (int i = 0; i < n; ++i)
+		for (int k = 0; k < n; ++k)
 #pragma omp simd
-			for (int j = 0; j < n; ++j) {
+			for (int j = 0; j < n; ++j)
 				temp.mat[i * n + j] += a.mat[i * n + k] * b.mat[k * n + j];
-			}
-		}
-	}
 
 	return temp;
 }
