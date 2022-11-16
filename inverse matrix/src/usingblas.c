@@ -83,15 +83,12 @@ int main(){
 	float* degree_r = (float*)malloc(sizeof(float)*n*n);
 	float* degree_r_temp = (float*)malloc(sizeof(float)*n*n);
 	struct timespec start, end;
-	
-	int inc = 1; //смещение между умножаемыми на константу элементами вектора
-	
-	
 	enter_matrix(a);
 	
-	timespec_get(&start, TIME_UTC);
 	
-	cblas_scopy(size, a, 1, b, 1);
+	timespec_get(&start, TIME_UTC);
+	cblas_scopy(size, a, 1, b, 1); //копирует a в b. 1 - параметр, который позволяет брать каждый k-ый элемент вектора, в данном случае
+				 //нужно выполнять копирование каждого элемента, поэтому тут стоит 1
 	make_one(r);
 	float max_col = find_max_col(a);
 	float max_row = find_max_row(a);
