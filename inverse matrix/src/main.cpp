@@ -5,13 +5,18 @@ using namespace std;
 
 
 int main() {
+/*
 	int m;
 	int n;
 	cout << "Enter the matrix size (n x n) :\n";
 	cin >> n;
 	cout << "Enter the accuracy parameter (integer) :\n";
 	cin >> m;
-	cout << "Enter the matrix :\n";
+	cout << "Enter the matrix :\n";*/
+	
+	int n = 8;
+	int m = 10;
+	
 	Matrix aMat(n);
 	aMat.entry_arr();
 
@@ -22,8 +27,7 @@ int main() {
 
 	cout << "----------------------------------------" << endl;
 	inverseA.print_matrix();
-	cout << "----------------------------------------" << endl;
-
+	cout << "----------------------------------------\n\n\n";
 	cout << "Calculation time: " << (end.tv_sec - start.tv_sec) + 0.000000001 * (end.tv_nsec - start.tv_nsec) << "sec. ";
 
 	return 0;
