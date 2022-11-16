@@ -230,12 +230,11 @@ Matrix operator*(const Matrix& a, const Matrix& b) {
 	int n = b.n;
 	Matrix temp(n);
 	temp.make_zero();
-//сравнить размер кэша и матрицы, влезет ли она в него?
 	
 	float* aptr = a.mat;
 	float* bptr;
 	float* resptr;
-	//std::cout << "--=-=-=-= " << *aptr;
+
 	asm volatile("movq %0, %%r8\n\t"
 		   //"movq %1, %%r9\n\t"
 		   //"movq %2, %%r10\n\t"
@@ -311,10 +310,6 @@ Matrix inverse_matrix(const Matrix& aMat, const int m) {
 	bMat = transpA * ((1.0 / max_sum_row) * (1.0 / max_sum_col));
 
 	rMat = oneMat - (bMat * aMat);
-	
-	//oneMat.print_matrix();
-	//(bMat * aMat).print_matrix();
-	//rMat.print_matrix();
 	
 	Matrix sum_degree_r(n);
 	Matrix degree_r = rMat;
