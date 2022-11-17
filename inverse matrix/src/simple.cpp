@@ -6,7 +6,7 @@ using namespace std;
 
 Matrix::Matrix() : n(0), mat(nullptr) {}
 Matrix::Matrix(int size) : n(size) { mat = new float[1ll * size * size]; }
-Matrix::Matrix(const Matrix& other) : n(other.n) {  // заменить other.n на n
+Matrix::Matrix(const Matrix& other) : n(other.n) {
 	mat = new float[1ll * other.n * other.n];
 	for (int i = 0; i < other.n; i++)
 		for (int j = 0; j < other.n; j++)
@@ -19,7 +19,6 @@ Matrix::Matrix(Matrix&& other) noexcept : n(move(other.n)) {
 
 void Matrix::entry_arr() {
 	string strmat;
-	cin.get();
 	for (int i = 0; i < n; i++) {
 		getline(cin, strmat);
 		int k = 0;
@@ -124,14 +123,8 @@ Matrix operator*(const Matrix& a, const Matrix& b) {
 	Matrix temp(n);
 	temp.make_zero();
 
-	/*
-	for (int i = 0; i < n; i++)
-		for (int j = 0; j < n; j++)
-			for (int k = 0; k < n; k++)
-				temp.mat[i * n + j] += a.mat[i * n + k] * b.mat[k * n + j];*/
 	for (int i = 0; i < n; ++i)
 		for (int k = 0; k < n; ++k)
-#pragma omp simd
 			for (int j = 0; j < n; ++j)
 				temp.mat[i * n + j] += a.mat[i * n + k] * b.mat[k * n + j];
 
@@ -177,6 +170,7 @@ Matrix inverse_matrix(const Matrix& aMat, const int m) {
 		for (int i = 1; i < m; i++) {
 			sum_degree_r = sum_degree_r + degree_r;
 			degree_r = degree_r * rMat;
+			
 		}
 
 	return sum_degree_r * bMat;
