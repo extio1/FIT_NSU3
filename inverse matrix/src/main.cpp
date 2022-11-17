@@ -14,7 +14,7 @@ int main() {
 	cin >> m;
 	cout << "Enter the matrix :\n";*/
 	
-	int n = 8;
+	int n = 2048;
 	int m = 10;
 	
 	Matrix aMat(n);
@@ -23,7 +23,7 @@ int main() {
 	timespec start, end;
 	if (timespec_get(&start, TIME_UTC) != -1);
 	Matrix inverseA = inverse_matrix(aMat, m);
-	if(timespec_get(&end, TIME_UTC != -1));
+	if(timespec_get(&end, TIME_UTC)!= -1);
 
 	cout << "----------------------------------------" << endl;
 	inverseA.print_matrix();
