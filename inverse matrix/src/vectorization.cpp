@@ -206,11 +206,6 @@ Matrix operator*(const Matrix& a, const float scal) {
 	asm volatile("movss %0, %%xmm0\n\t" //в нулевую позицию вектора поместили скаляр
 	            "pshufd $0b00000000, %%xmm0, %%xmm0" //заполнили весь вектор значением из 1 ячейки
 		  ::"m"(scal));
-		  /*
-	float* test = new float[4];
-	asm volatile("movups %%xmm0, (%%rax)" :: "r"(test));
-	for(int i = 0; i < 4; i++)
-		std::cout << test[i] << endl;*/
 		
 	asm volatile("movq %0, %%rbx" :: "m"(inmatptr));
 	asm volatile("movq %0, %%r8" :: "m"(outmatptr));
@@ -234,7 +229,6 @@ Matrix operator*(const Matrix& a, const Matrix& b) {
 	float* aptr = a.mat;
 	float* bptr;
 	float* resptr;
-
 	asm volatile("movq %0, %%r8\n\t"
 		   //"movq %1, %%r9\n\t"
 		   //"movq %2, %%r10\n\t"
