@@ -10,6 +10,7 @@ void Player::enter_choice(const std::vector<char>& choice) {
 }
 void Player::enter_score(const std::vector<int>& score) {}
 void Player::clear() {}
+Player::~Player() {}
 
 char random::make_step() {
 	srand(time(NULL));
@@ -45,7 +46,7 @@ void titfortat::clear() {
 	for (int i = 0; i < 2; i++)
 		prevGameChoice[i] = 0;
 }
-titfortat::~titfortat(){};
+titfortat::~titfortat() {};
 
 grim::grim() : grimTrigger(false) {}
 char grim::make_step() {
@@ -70,9 +71,9 @@ void grim::clear() {
 	for (int i = 0; i < 2; i++)
 		prevGameChoice[i] = 0;
 }
-grim::~grim(){};
+grim::~grim() {};
 
-detective::detective() : nstep(1), mode(0) {}
+detective::detective() : nstep(0), mode(0) {}
 char detective::like_titfortat() {
 	for (char ch : choicehistory) {
 		if (ch == 'D') {
@@ -86,8 +87,8 @@ char detective::like_titfortat() {
 	return 'C';
 }
 char detective::make_step() {
-	if (nstep <= 4) {
-		if (nstep % 2 != 0) {
+	if (nstep < 4) {
+		if (nstep % 2 == 0) {
 			nstep++;
 			return 'C';
 		}
@@ -97,6 +98,7 @@ char detective::make_step() {
 		}
 	}
 	else {
+		nstep++;
 		if (mode != 0) {
 			if (mode == 1) {
 				return 'D';
@@ -109,6 +111,9 @@ char detective::make_step() {
 			for (char c : choicehistory)
 				if (c == 'D') {
 					mode = 2;
+					choicehistory[0] = choicehistory[6];
+					choicehistory[1] = choicehistory[7];
+					choicehistory.resize(2);
 					return like_titfortat();
 				}
 			mode = 1;
@@ -125,7 +130,9 @@ void detective::enter_choice(const std::vector<char>& choice) {
 		choicehistory = choice;
 	}
 }
-detective::~detective(){}
+detective::~detective() {}
+int detective::show_mode() { return mode; }
+std::vector<char> detective::show_mat() { return choicehistory; }
 
 std::shared_ptr<Player> PlayerFabric::make_player(strategies strat) {
 	if (strat == strategies::alldefect)
@@ -141,5 +148,5 @@ std::shared_ptr<Player> PlayerFabric::make_player(strategies strat) {
 	else if (strat == strategies::random)
 		return std::make_shared<random>();
 	else
-		return nullptr;
+		throw(1);
 }
