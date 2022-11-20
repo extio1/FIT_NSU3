@@ -8,26 +8,9 @@
 #include "gamestate.h"
 #include "arbitrator.h"
 #include "strategies.h"
+#include "strenumconv.h"
 
 namespace {
-	std::string to_string(strategies st) {
-		switch (st) {
-		case(strategies::allcooperate):
-			return "allcooperate ";
-		case(strategies::alldefect):
-			return "alldefect ";
-		case(strategies::titfortat):
-			return "titfortat ";
-		case(strategies::grim):
-			return "grim ";
-		case(strategies::random):
-			return "random ";
-		case(strategies::detective):
-			return "detective ";
-		default:
-			return "none ";
-		}
-	}
 	inline void print_players(const std::vector<strategies>& st) {
 		for (auto plname : st)
 			std::cout << to_string(plname);
@@ -67,17 +50,14 @@ void assign_matrix(std::string mtx, GameState& game) {
 			game.rules = read;
 		}
 		else if (in.fail()) {
-			std::cerr << "Input file values are wrong\n";
-			exit(1);
+			throw(1);
 		}
 		else {
-			std::cerr << "Error while reading the file\n";
-			exit(1);
+			throw(2);
 		}
 	}
 	else {
-		std::cerr << "Matrix file haven't read\n";
-		exit(1);
+		throw(3);
 	}
 	in.close();
 }
@@ -91,7 +71,22 @@ GameState::GameState(std::string mtx, std::string cnfg) {
 		configPath = cnfg;
 	}
 	if (!mtx.empty()) {
-		assign_matrix(mtx, *this);
+		try {
+			assign_matrix(mtx, *this);
+		}
+		catch(int errornum){
+			switch (errornum) {
+			case 1:
+				std::cerr << "Input file values are wrong\n";
+				exit(1);
+			case 2:
+				std::cerr << "Error while reading the file\n";
+				exit(2);
+			case 3:
+				std::cerr << "Matrix file haven't read\n";
+				exit(3);
+			}
+		}
 	}
 	else {
 		*this = GameState();
@@ -100,9 +95,17 @@ GameState::GameState(std::string mtx, std::string cnfg) {
 
 const std::map<std::string, std::string>& GameState::get_rules() const { return rules; }
 
-void GameState::start(const std::vector<strategies>& players, const int nSteps, const char mode) { //добавить try-catch к create_players
+void GameState::start(const std::vector<strategies>& players, const int nSteps, const char mode) { 
 	arbitrator arb(*this);
-	arb.create_players(players);
+	try {
+		arb.create_players(players);
+	}
+	catch (int err) {
+		if (err == 1) {
+			std::cerr << "Error while creating the player\n";
+			exit(1);
+		}
+	}
 
 	std::string choice;
 	if (mode == 'd') {
