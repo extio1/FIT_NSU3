@@ -5,53 +5,28 @@
 #include <memory>
 #include <list>
 
-#include "strategies.h"
 #include "gamestate.h"
+#include "strenumconv.h"
 
 //виртуальный деструктор!
- 
-std::string to_string(strategies st) { //перенести перевод enum string в отдельный заголовочный файл
-	switch (st) {
-	case(strategies::allcooperate):
-		return "allcooperate ";
-	case(strategies::alldefect):
-		return "alldefect ";
-	case(strategies::titfortat):
-		return "titfortat ";
-	case(strategies::grim):
-		return "grim ";
-	case(strategies::random):
-		return "random ";
-	case(strategies::detective):
-		return "detective ";
-	default:
-		return "none ";
-	}
-}
+//перенесены функции-переводчики из string в enum в отдельный hpp
+//добавить try-catch к create_players
+//добавить try-catch к parser
 
-strategies str_to_enum(char* s) { //добавить значение по умолчанию
-	std::string str(s);
-	if (str == "alldefect")
-		return strategies::alldefect;
-	else if (str == "allcooperate")
-		return strategies::allcooperate;
-	else if (str == "grim")
-		return strategies::grim;
-	else if (str == "titfortat")
-		return strategies::titfortat;
-	else if (str == "random")
-		return strategies::random;
-	else if (str == "detective")
-		return strategies::detective;
-}
+struct initInfo {
+	std::vector<strategies> strats;
+	char mode;
+	int steps;
+	std::string configPath;
+	std::string matrixPath;
+};
 
-void parse(int argc, char** argv, char* mode, int* steps, std::string* cnfgs, std::string* mtrx, std::vector<strategies>* strats) {
+void parse(int argc, char** argv, initInfo& gameinfo) {
 	int i = 1;
 	for (i; i < argc && argv[i][0] != '-'; i++) //reading only strategies
-		strats->push_back(str_to_enum(argv[i]));
+		gameinfo.strats.push_back(str_to_enum(argv[i]));
 	if (i < 3) {
-		std::cout << "There is not enough participants\n";
-		exit(1);
+		throw(1);
 	}
 
 	for (i; i < argc; i++) {
@@ -66,16 +41,15 @@ void parse(int argc, char** argv, char* mode, int* steps, std::string* cnfgs, st
 				value.push_back(argv[i][j]);
 
 			if (option == "mode")
-				*mode = value[0];
+				gameinfo.mode = value[0];
 			else if (option == "steps")
-				*steps = atoi(value.c_str());
+				gameinfo.steps = atoi(value.c_str());
 			else if (option == "matrix")
-				*mtrx = value;
+				gameinfo.matrixPath = value;
 			else if (option == "config")
-				*cnfgs = value;
+				gameinfo.configPath = value;
 			else {
-				std::cout << "Unknown command";
-				exit(0);
+				throw(2);
 			}
 
 		}
@@ -83,16 +57,22 @@ void parse(int argc, char** argv, char* mode, int* steps, std::string* cnfgs, st
 }
 
 int main(int argc, char** argv) {
-	std::vector<strategies> strats; //= { strategies::detective, strategies::allcooperate, strategies::allcooperate };
-	strats.reserve(3);
-	char mode = 'd';
-	int steps = 10;
-	std::string configPath;
-	std::string matrixPath; // = "C:/Users/User/source/repos/oop_prakt2/test/wrongformatmatirx.txt";
-	parse(argc, argv, &mode, &steps, &configPath, &matrixPath, &strats);
-	if (strats.size() > 3)
-		mode = 't';
+	initInfo gameinfo;
 
-	GameState dilemma(matrixPath, configPath);
-	dilemma.start(strats, steps, mode);
+	try {
+		parse(argc, argv, gameinfo);
+	}
+	catch (int parseerrno) {
+		switch (parseerrno) {
+		case 1:
+			std::cerr << "There is not enough participants\n";
+			exit(1);
+		case 2:
+			std::cerr << "Unknown command\n";
+			exit(2);
+		}
+	}
+
+	GameState dilemma(gameinfo.matrixPath, gameinfo.configPath);
+	dilemma.start(gameinfo.strats, gameinfo.steps, gameinfo.mode);
 }
