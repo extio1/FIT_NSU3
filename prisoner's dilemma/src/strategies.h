@@ -4,7 +4,7 @@
 #include <vector>
 
 class GameState;
-enum class strategies { alldefect, allcooperate, titfortat, grim, detective, random };
+enum class strategies { alldefect, allcooperate, titfortat, grim, detective, random, notstated };
 
 class Player {
 public:
@@ -12,7 +12,7 @@ public:
 	virtual void enter_score(const std::vector<int>& score);
 	virtual void enter_choice(const std::vector<char>& choice);
 	virtual void clear();
-	virtual ~Player() = 0;
+	virtual ~Player();
 };
 
 class random : public Player { //рандом, что еще сказать
@@ -53,12 +53,14 @@ public:
 };
 
 class detective : public Player { //первые 4-е хода CDCD, если со строны противника было предательство, будет вести себя как
-								  //alldefect. Если не было D, то всегда будет предавать.
+								  //titfortat. Если не было D, то всегда будет предавать.
 private:
 	std::vector<char> choicehistory;
 	int nstep;
 	int mode; //0 - неопределенный, 1 - alldefect, 2 - titfortat
 public:
+	int show_mode();
+	std::vector<char> show_mat();
 	detective();
 	char like_titfortat();
 	char make_step();
