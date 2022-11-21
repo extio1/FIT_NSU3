@@ -7,6 +7,7 @@
 
 #include "gamestate.h"
 #include "strenumconv.h"
+#include "excpt.h"
 
 //виртуальный деструктор!
 //перенесены функции-переводчики из string в enum в отдельный hpp
@@ -25,8 +26,8 @@ void parse(int argc, char** argv, initInfo& gameinfo) {
 	int i = 1;
 	for (i; i < argc && argv[i][0] != '-'; i++) //reading only strategies
 		gameinfo.strats.push_back(str_to_enum(argv[i]));
-	if (i < 3) {
-		throw(1);
+	if (i < 4) {
+		throw(not_enough_players(i-1));
 	}
 
 	for (i; i < argc; i++) {
@@ -49,30 +50,29 @@ void parse(int argc, char** argv, initInfo& gameinfo) {
 			else if (option == "config")
 				gameinfo.configPath = value;
 			else {
-				throw(2);
+				throw(invalid_command(option));
 			}
-
 		}
 	}
 }
 
-int main(int argc, char** argv) {
+int main(int argc, char** argv) { //добавить, чтобы узнать, что за неизвестная команда
 	initInfo gameinfo;
-
+	
 	try {
 		parse(argc, argv, gameinfo);
 	}
-	catch (int parseerrno) {
-		switch (parseerrno) {
-		case 1:
-			std::cerr << "There is not enough participants\n";
-			exit(1);
-		case 2:
-			std::cerr << "Unknown command\n";
-			exit(2);
-		}
+	catch (not_enough_players nep) {
+		std::cerr << "There is " << nep.how_many() << " of 3 players\n";
+		return 1;
+	}
+	catch(invalid_command ic){
+		std::cerr << "Unknown command: " << ic.what();
+		return 1;
+	}
+	catch (invalid_player ip) {
+		std::cout << "Error while creating player " << ip.what() << '\n';
 	}
 
 	GameState dilemma(gameinfo.matrixPath, gameinfo.configPath);
-	dilemma.start(gameinfo.strats, gameinfo.steps, gameinfo.mode);
 }
