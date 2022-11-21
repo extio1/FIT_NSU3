@@ -4,6 +4,7 @@
 #include <iostream>
 
 #include "strategies.h"
+#include "excpt.h"
 
 void Player::enter_choice(const std::vector<char>& choice) {
 	return;
@@ -148,5 +149,5 @@ std::shared_ptr<Player> PlayerFabric::make_player(strategies strat) {
 	else if (strat == strategies::random)
 		return std::make_shared<random>();
 	else
-		throw(1);
+		throw(invalid_player(strat));
 }
