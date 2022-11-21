@@ -74,7 +74,7 @@ GameState::GameState(std::string mtx, std::string cnfg) {
 		try {
 			assign_matrix(mtx, *this);
 		}
-		catch(int errornum){
+		catch (int errornum) {
 			switch (errornum) {
 			case 1:
 				std::cerr << "Input file values are wrong\n";
@@ -95,16 +95,13 @@ GameState::GameState(std::string mtx, std::string cnfg) {
 
 const std::map<std::string, std::string>& GameState::get_rules() const { return rules; }
 
-void GameState::start(const std::vector<strategies>& players, const int nSteps, const char mode) { 
+void GameState::start(const std::vector<strategies>& players, const int nSteps, const char mode) {
 	arbitrator arb(*this);
 	try {
 		arb.create_players(players);
 	}
-	catch (int err) {
-		if (err == 1) {
-			std::cerr << "Error while creating the player\n";
-			exit(1);
-		}
+	catch (...) {
+		throw;
 	}
 
 	std::string choice;
