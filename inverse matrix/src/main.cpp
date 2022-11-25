@@ -48,14 +48,12 @@ void random_init(long* arr, const int size) {
 }
 
 void test(const long* arr, const int size) {
-
-	const int k = 5;
+	const int k = 5; //число повторений цикла для замера среднего времени доступа к элементу массива
 	unsigned long long start, end;
-	warm_proc();
-	long temp;
 
-	for (int i = 0, k = 0; i < size; i++) { //загрузили в кеш массив
-		//printf("%d -> %d ", k, arr[k]);
+	warm_proc();
+
+	for (int i = 0, k = 0; i < size; i++) { //загрузили в кэш массив
 		k = arr[k];
 	}
 
@@ -64,6 +62,9 @@ void test(const long* arr, const int size) {
 		k = arr[k];
 	}
 	end = __rdtsc();
+
+	printf("Time: ");
+	printf("%llu", (end - start));
 }
 
 int main() {
