@@ -5,36 +5,42 @@
 #include <string>
 
 audiofile::audiofile(): wheader(std::make_unique<wavheader>()), wdata(std::make_unique<wavdata>()) {}
+audiofile::audiofile(std::fstream f){}
+audiofile::~audiofile() {}
+bool audiofile::eof() {
+	return wdata->endof();
+}
 
-audiofile::audiofile(const char* path) : audiostr(path){
-	if(audiostr.is_open()){
-		wheader = std::make_unique<wavheader>(audiostr);
-		wdata = std::make_unique<wavdata>(audiostr);
+inaudiofile::inaudiofile() {};
+inaudiofile::inaudiofile(const char* path) {
+	audiostr.open(path, std::ios_base::binary);
+	if (audiostr.is_open()) {
+		wdata->find_begin(audiostr);
+		wheader->read_header(audiostr);
 	}
 	else {
 		throw;
 	}
 }
-
-void audiofile::read_header(std::string& path) {
-	audiostr.open(path);
-	wheader->read_header(audiostr);
-}
-
-
-audiofile& audiofile::operator>>(std::vector<int>& arr) {
+inaudiofile& inaudiofile::operator>>(std::vector<int>& arr) {
 	wdata->read(arr, audiostr);
 	return *this;
 }
+inaudiofile::~inaudiofile() {};
 
-void audiofile::create_audiofile(const char* path) {
-	std::ofstream newf(path);
-	if (newf.is_open()) {
-		wheader->genarate_header(newf);
+
+outaudiofile::outaudiofile() {};
+outaudiofile::outaudiofile(const char* path) {
+	audiostr.open(path, std::ios_base::binary);
+	if (audiostr.is_open()) {
+		wheader->genarate_header(audiostr);
 	}
 	else {
 		throw;
 	}
 }
-
-audiofile::~audiofile() { audiostr.close(); }
+outaudiofile& outaudiofile::operator<<(std::vector<int>& arr) {
+	wdata->write(arr, audiostr);
+	return *this;
+}
+outaudiofile::~outaudiofile() {};
