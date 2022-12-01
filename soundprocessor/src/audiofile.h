@@ -12,9 +12,8 @@ class wavheader{
 public:
 
 	wavheader();
-	wavheader(std::fstream&);
-	void read_header(std::fstream&);
-	void write_header(std::fstream&);
+	void read_header(std::ifstream&);
+	void write_header(std::ofstream&);
 	void genarate_header(std::ofstream&);
 	~wavheader();
 
@@ -38,13 +37,19 @@ class wavdata {
 public:
 
 	wavdata();
-	wavdata(std::fstream&); //должен кидать о неправильном хедере (не нашел сегмент данных)
-	void read(std::vector<int>&, std::fstream&);
+	//wavdata(std::fstream&); 
+
+	void find_begin(std::ifstream&); //должен кидать о неправильном хедере (не нашел сегмент данных)
+	void read(std::vector<int>&, std::ifstream&);
+	void write(std::vector<int>&, std::ofstream&);
+	void set_begin(unsigned int);
+	bool endof();
+
 	~wavdata();
 	void test();
 
 private:
-
+	
 	bool eof;
 	unsigned int cur_pos;
 	unsigned int data_size;
@@ -57,16 +62,40 @@ class audiofile {
 public:
 
 	audiofile();
-	audiofile(const char*);
+	audiofile(std::fstream);
 
-	audiofile& operator>>(std::vector<int>&);//читает wav файл и отдает вектор по 512 unsigned int
 	void read_header(std::string&);
 	void create_audiofile(const char*);
+	bool eof();
 
 	~audiofile();
 
-private:
+protected:
 	std::unique_ptr<wavheader> wheader;
 	std::unique_ptr<wavdata> wdata;
-	std::fstream audiostr;
+};
+
+
+class inaudiofile : public audiofile {
+public:
+	inaudiofile();
+	inaudiofile(const char*);
+
+	inaudiofile& operator>>(std::vector<int>&); //читает wav файл (data) и отдает вектор по 512 unsigned int
+
+	~inaudiofile();
+private:
+	std::ifstream audiostr;
+};
+
+class outaudiofile : public audiofile {
+public:
+	outaudiofile();
+	outaudiofile(const char*);
+
+	outaudiofile& operator<<(std::vector<int>&);//пишет в wav файл (data) по 512 unsigned int
+
+	~outaudiofile();
+private:
+	std::ofstream audiostr;
 };
