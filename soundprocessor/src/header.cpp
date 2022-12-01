@@ -1,18 +1,14 @@
-
 #include "audiofile.h"
 #include <iostream>
 #include <fstream>
 #include "convasciiint.h"
+#include "writer.h"
 
 wavheader::wavheader() : average_bytes_per_sec(0), block_align(0),
 						 comp_code(0), n_of_channels(0), sample_rate(0), 
 						 sign_bits_per_sample(0), RIFF_chunk_size(0) {}
 
-wavheader::wavheader(std::fstream& in): wavheader() {
-	read_header(in);
-}
-
-void wavheader::read_header(std::fstream& wavin) {
+void wavheader::read_header(std::ifstream& wavin) {
 	char buffer[5];
 	buffer[4] = '\0';
 
@@ -89,7 +85,7 @@ void wavheader::read_header(std::fstream& wavin) {
 	}
 }
 
-void wavheader::write_header(std::fstream& wavout) {}
+void wavheader::write_header(std::ofstream& wavout) {}
 	/*
 	if (wavout.is_open()) {
 		wavout << 'R' << 'I' << 'F' << 'F';
@@ -165,13 +161,21 @@ void wavheader::write_header(std::fstream& wavout) {}
 
 void wavheader::genarate_header(std::ofstream& f) {
 	char buffer[4];
+	writer writer;
 
 	f.write("RIFF", 4);
-	int_to_ascii_seq_le(buffer, 0, 4);
-	f.write(buffer, 4);
+	writer.write_num_b(0, f, 4); //File size - 8
 	f.write("WAVE", 4);
 	f.write("fmt ", 4);
 
+	writer.write_num_b(16, f, 4); //size of fmt data
+	writer.write_num_b(1, f, 2); //compression type
+	writer.write_num_b(1, f, 2); //number of channels
+	writer.write_num_b(44100, f, 4); //discr
+	writer.write_num_b(88200, f, 4); //bitrate
+	writer.write_num_b(2, f, 2); //allign
+	writer.write_num_b(16, f, 2); //audio depth
+	/*
 	int_to_ascii_seq_le(buffer, 16, 4);
 	f.write(buffer, 4);
 	int_to_ascii_seq_le(buffer, 1, 2);
@@ -180,17 +184,17 @@ void wavheader::genarate_header(std::ofstream& f) {
 	f.write(buffer, 2);
 	int_to_ascii_seq_le(buffer, 44100, 4);
 	f.write(buffer, 4);
-	int_to_ascii_seq_le(buffer, 0, 4);
+	int_to_ascii_seq_le(buffer, 88200, 4);
 	f.write(buffer, 4);
-	int_to_ascii_seq_le(buffer, 0, 2);
+	int_to_ascii_seq_le(buffer, 2, 2);
 	f.write(buffer, 2);
-	int_to_ascii_seq_le(buffer, 8, 2);
-	f.write(buffer, 2);
+	int_to_ascii_seq_le(buffer, 16, 2);
+	f.write(buffer, 2);*/
 
 	f.write("data", 4);
-	int_to_ascii_seq_le(buffer, 0, 4);
-	f.write(buffer, 4);
-
+	//int_to_ascii_seq_le(buffer, 200000202, 4);
+	//f.write(buffer, 4);
+	writer.write_num_b(200000202, f, 4); //file data size
 }
 
 wavheader::~wavheader(){}
