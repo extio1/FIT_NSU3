@@ -2,6 +2,7 @@
 #include <string>
 #include <vector>
 #include "audiofile.h"
+#include "converter.h"
 #include "convasciiint.h"
 
 struct configs {
@@ -15,6 +16,24 @@ struct parsedata {
     struct configs;
 };
 
+
+int foo() {
+    std::vector<int> arr(3);
+    int z = -999;
+    //z = arr[3];
+    try {
+        int z = 0;
+        std::exception a;
+        throw a;
+    }
+    catch (...) {
+        std::cerr << "ERROR\n";
+    }
+    
+
+    return z;
+}
+
 int main()
 {
     //std::fstream a;
@@ -22,14 +41,20 @@ int main()
 
    // audiofile wav;
    // wav.read_header("district_four.wav");
-    audiofile inwav("district_four.wav");
+    
+    inaudiofile inwav("district_four.wav");
+    outaudiofile outwav("output.wav");
 
-    audiofile file;
-    file.create_audiofile("output.wav");
-
-    char arr[4];
+    soundproc proc;
+    proc.use(inwav, outwav);
 
     /*
+    int a = -123;
+    a = foo();
+
+    std::cout << a;
+
+    
     int_to_ascii_seq_le(arr, 81298312, 4);
     printf("%d\n", ascii_seq_to_int_le(arr, 4));
 
@@ -43,4 +68,3 @@ int main()
    // proc.use("effectname", inwav, outwav);
 
 }
-
