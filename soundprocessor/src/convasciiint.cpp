@@ -1,4 +1,5 @@
 #include <vector>
+#include "sample.h"
 
 namespace {
 	char arr_8_bit_to_char(const char* arr) {
