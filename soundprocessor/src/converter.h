@@ -1,24 +1,26 @@
 #pragma once
 #include <vector>
+#include <string>
+#include <memory>
 
-class audiofile;
 class inaudiofile;
 class outaudiofile;
 class converter;
 
 class soundproc {
 public:
-	void use(inaudiofile&, outaudiofile&);
+	void use(inaudiofile&, outaudiofile&, std::string&);
 private:
 	std::vector<converter> conv_list;
 };
 
 class converter {
 public:
-	virtual void launch(audiofile&, audiofile&) = 0;
+	virtual void launch(inaudiofile&, outaudiofile&) = 0;
 	virtual void who_am_i() = 0;
-	virtual ~converter() {};
+	virtual ~converter();
 };
+
 /*
 class mute : converter {
 public:
@@ -41,8 +43,13 @@ public:
 	~new() override;
 };
 */
-class nothing : public converter {
+class copy : public converter {
 public:
-	//void launch(audiofile& f1, audiofile& f2) override;
-	~nothing();
+	void launch(inaudiofile&, outaudiofile&) override;
+	void who_am_i() override;
+};
+
+class converterfabric {
+public:
+	std::unique_ptr<converter> make_conv(std::string);
 };
