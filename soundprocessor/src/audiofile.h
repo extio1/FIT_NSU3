@@ -5,9 +5,6 @@
 #include <memory>
 #include <iostream>
 
-#include "header.h"
-#include "data.h"
-
 class wavheader{
 public:
 
