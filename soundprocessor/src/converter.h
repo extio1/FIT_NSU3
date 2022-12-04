@@ -6,46 +6,38 @@
 class inaudiofile;
 class outaudiofile;
 class converter;
+struct command_info;
 
 class soundproc {
 public:
-	void use(inaudiofile&, outaudiofile&, std::string&);
+	void use(const command_info&) const;
 private:
 	std::vector<converter> conv_list;
 };
 
 class converter {
 public:
-	virtual void launch(inaudiofile&, outaudiofile&) = 0;
+	virtual void launch(const command_info& com) = 0;
 	virtual void who_am_i() = 0;
 	virtual ~converter();
 };
 
-/*
-class mute : converter {
+
+class mute : public converter {
 public:
-	void launch() override;
+	mute();
+	//mute(unsigned int, unsigned int);
+	void launch(const command_info& com) override;
 	void who_am_i() override;
-	~mute() override;
+	/*
+private:
+	unsigned int begin;
+	unsigned int end;*/
 };
 
-class mix : converter {
-public:
-	void launch() override;
-	void who_am_i() override;
-	~mix() override;
-};
-
-class new : converter {
-public:
-	void launch() override;
-	void who_am_i() override;
-	~new() override;
-};
-*/
 class copy : public converter {
 public:
-	void launch(inaudiofile&, outaudiofile&) override;
+	void launch(const command_info& com) override;
 	void who_am_i() override;
 };
 
