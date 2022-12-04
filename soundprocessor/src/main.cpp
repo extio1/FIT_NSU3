@@ -1,70 +1,71 @@
 #include <iostream>
 #include <string>
 #include <vector>
+
+#include "excpts.h"
 #include "audiofile.h"
 #include "converter.h"
 #include "convasciiint.h"
-
-struct configs {
-    std::string configpath;
-    std::vector<std::string> infilepaths;
-    std::string outfilepath;
-};
-
-struct parsedata {
-    char option;
-    struct configs;
-};
+#include "commandlineparser.h"
+#include "configfileparser.h"
 
 
-int foo() {
-    std::vector<int> arr(3);
-    int z = -999;
-    //z = arr[3];
+
+int main(int argc, char** argv){
+    comdata data;
     try {
-        int z = 0;
-        std::exception a;
-        throw a;
+        parse_command_line(argc, argv, data);
+        //check_correct_wav(data.wav_file_path);
+    }
+    catch (not_enough_arguments nof) {
+        std::cout << "0";
+        std::cerr << nof.what();
+        exit(nof.get_error_code());
+    }
+    catch (unknown_command uc) {
+        std::cout << "1";
+        std::cerr << uc.what();
+        exit(uc.get_error_code());
+    }
+    catch (command_line_parser_error clpe) {
+        std::cout << "2";
+        std::cerr << clpe.what();
+        exit(clpe.get_error_code());
+    }
+    catch (input_wav_format_exception iwfe) {
+        std::cout << "3";
+        std::cerr << iwfe.what();
+        exit(iwfe.get_error_code());
+    }
+    catch(file_havent_opened fho){
+        std::cout << "4";
+        std::cerr << fho.what();
+        exit(fho.get_error_code());
     }
     catch (...) {
-        std::cerr << "ERROR\n";
+        std::cout << "ERROR\n";
     }
-    
+    std::cout << "fine";
 
-    return z;
-}
-
-int main()
-{
-    //std::fstream a;
-    //a.open("district_four.wav");
-
-   // audiofile wav;
-   // wav.read_header("district_four.wav");
-    
-    inaudiofile inwav("district_four.wav");
-    outaudiofile outwav("output.wav");
-
+    configparser configparser(data.config_path);
     soundproc proc;
-    proc.use(inwav, outwav);
 
-    /*
-    int a = -123;
-    a = foo();
-
-    std::cout << a;
-
+    proc.use(configparser.next_command(data));
     
-    int_to_ascii_seq_le(arr, 81298312, 4);
-    printf("%d\n", ascii_seq_to_int_le(arr, 4));
+    
+    /*
+    command_info test;
+    test.name = "mute";
+    test.int_param.push_back(5);
+    test.int_param.push_back(6);
+    test.input.push_back("district_four.wav");
+    test.output = "output.wav";
+    
+    proc.use(test);
 
-    for (int i = 0; i < 4; i++) {
-        printf("%d ", (arr[i] < 0) ? arr[i] + 256 : arr[i]);
-    }
+    std::string test = "nan";
+    int a = atoi(test.c_str());
+    std::cout << a;
     */
-    //audiofile outwav("output.wav");
-
-    //soundproc proc;
-   // proc.use("effectname", inwav, outwav);
-
+    return 0;
 }
