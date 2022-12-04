@@ -12,6 +12,7 @@ public:
 	void read_header(std::ifstream&);
 	void write_header(std::ofstream&);
 	void genarate_header(std::ofstream&);
+	unsigned int get_sample_rate() const;
 	~wavheader();
 
 private:
@@ -59,7 +60,7 @@ class audiofile {
 public:
 
 	audiofile();
-	audiofile(std::fstream);
+	//audiofile(std::fstream);
 
 	void read_header(std::string&);
 	void create_audiofile(const char*);
@@ -67,8 +68,9 @@ public:
 
 	~audiofile();
 
-protected:
 	std::unique_ptr<wavheader> wheader;
+
+protected:
 	std::unique_ptr<wavdata> wdata;
 };
 
@@ -77,6 +79,7 @@ class inaudiofile : public audiofile {
 public:
 	inaudiofile();
 	inaudiofile(const char*);
+	inaudiofile(const std::string&);
 
 	inaudiofile& operator>>(std::vector<int>&); //читает wav файл (data) и отдает вектор по 512 unsigned int
 
@@ -88,6 +91,7 @@ private:
 class outaudiofile : public audiofile {
 public:
 	outaudiofile();
+	outaudiofile(const std::string&);
 	outaudiofile(const char*);
 
 	outaudiofile& operator<<(std::vector<int>&);//пишет в wav файл (data) по 512 unsigned int
