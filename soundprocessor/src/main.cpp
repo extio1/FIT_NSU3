@@ -10,12 +10,11 @@
 #include "configfileparser.h"
 
 
-
-int main(int argc, char** argv){
-    comdata data;
+int main(int argc, char** argv) {
+    comdata data;/*
     try {
         parse_command_line(argc, argv, data);
-        //check_correct_wav(data.wav_file_path);
+        check_correct_wav(data.wav_file_path);
     }
     catch (not_enough_arguments nof) {
         std::cout << "0";
@@ -37,7 +36,7 @@ int main(int argc, char** argv){
         std::cerr << iwfe.what();
         exit(iwfe.get_error_code());
     }
-    catch(file_havent_opened fho){
+    catch (file_havent_opened fho) {
         std::cout << "4";
         std::cerr << fho.what();
         exit(fho.get_error_code());
@@ -46,13 +45,27 @@ int main(int argc, char** argv){
         std::cout << "ERROR\n";
     }
     std::cout << "fine";
+    */
+    data.mode = 'c';
+    data.config_path = "config.txt";
+    data.output_path = "output.txt";
+    data.wav_file_path.push_back("district_four.wav");
 
-    configparser configparser(data.config_path);
-    soundproc proc;
+    try {
+        configparser configparser(data.config_path);
+        soundproc proc;
+        proc.use(configparser.next_command(data));
+    }
+    catch (file_havent_opened fho) {
+        std::cout << "4";
+        std::cerr << fho.what();
+        exit(fho.get_error_code());
+    }
+    catch (...) {
+        std::cerr << "ERROR";
+    }
+    
 
-    proc.use(configparser.next_command(data));
-    
-    
     /*
     command_info test;
     test.name = "mute";
@@ -60,9 +73,8 @@ int main(int argc, char** argv){
     test.int_param.push_back(6);
     test.input.push_back("district_four.wav");
     test.output = "output.wav";
-    
-    proc.use(test);
 
+    proc.use(test);
     std::string test = "nan";
     int a = atoi(test.c_str());
     std::cout << a;
