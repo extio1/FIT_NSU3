@@ -22,25 +22,23 @@ void mix::launch(const command_info& com) {
 	while (!inf1.eof() && !inf2.eof()) {
 		inf1 >> temp1;
 		inf2 >> temp2;
-		if (second >= com.int_param[0]) {
-			
-			size_t length = std::min(temp1.size(), temp2.size());
-			output.resize(length);
-			for (size_t i = 0; i < length; i++) {
-				output[i] = (static_cast<sample>(temp1[i]) / sample(2)) + (static_cast<sample>(temp2[i]) / sample(2));
-			}
 
-			outf << output;
-		}
-		else {
-			inf2.skip(temp1.size());
-			tick_counter += temp1.size();
-			if (tick_counter >= rate) {
-				second++;
-				tick_counter = 0;
+		size_t length = std::min(temp1.size(), temp2.size());
+		output.resize(length);
+		for (size_t i = 0; i < length; i++) {
+			if (second >= com.int_param[0]) {
+				output[i] = (sample(temp1[i]) / sample(2)) + (sample(temp2[i]) / sample(2));
 			}
-			outf << temp1;
+			else {
+				tick_counter++;
+				if (tick_counter >= rate) {
+					second++;
+					tick_counter = 0;
+				}
+				output[i] = temp1[i];
+			}
 		}
+		outf << output;
 	}
 
 	while (!inf1.eof()) {
