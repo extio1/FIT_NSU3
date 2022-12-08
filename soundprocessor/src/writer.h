@@ -2,10 +2,10 @@
 #include <fstream>
 #include <vector>
 
-class writer {
+class WavWriter {
 public:
-	writer();
-	writer(int);
+	WavWriter();
+	WavWriter(int);
 
 	void write_sample(const int, std::ofstream&);
 	void write_num_b(const int, std::ofstream&, const int);
