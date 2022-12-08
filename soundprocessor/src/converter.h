@@ -8,12 +8,7 @@ class outaudiofile;
 class converter;
 struct command_info;
 
-class soundproc {
-public:
-	void use(const command_info&) const;
-private:
-	std::vector<converter> conv_list;
-};
+static std::vector<std::string> list_convert = { "mute", "mix", "amplify", "copy" };
 
 class converter {
 public:
@@ -22,17 +17,10 @@ public:
 	virtual ~converter();
 };
 
-
 class mute : public converter {
 public:
-	mute();
-	//mute(unsigned int, unsigned int);
 	void launch(const command_info& com) override;
 	void who_am_i() override;
-	/*
-private:
-	unsigned int begin;
-	unsigned int end;*/
 };
 
 class copy : public converter {
@@ -41,7 +29,19 @@ public:
 	void who_am_i() override;
 };
 
+class mix : public converter {
+public:
+	void launch(const command_info& com) override;
+	void who_am_i() override;
+};
+
+class amplify : public converter {
+public:
+	void launch(const command_info& com) override;
+	void who_am_i() override;
+};
+
 class converterfabric {
 public:
-	std::unique_ptr<converter> make_conv(std::string);
+	std::unique_ptr<converter> make_conv(const std::string&);
 };
