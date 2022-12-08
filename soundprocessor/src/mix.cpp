@@ -1,11 +1,13 @@
 #include "converter.h"
 #include "audiofile.h"
 #include "configfileparser.h"
+#include "soundproc.h"
 #include "sample.h"
+#include "excpts.h"
 
 void mix::launch(const command_info& com) {
 	if (com.input.size() < 2)
-		throw;
+		throw conv_not_enought_args(com.name.c_str());
 
 	inaudiofile inf1(com.input[0]);
 	inaudiofile inf2(com.input[1]);
@@ -26,7 +28,7 @@ void mix::launch(const command_info& com) {
 		size_t length = std::min(temp1.size(), temp2.size());
 		output.resize(length);
 		for (size_t i = 0; i < length; i++) {
-			if (second >= com.int_param[0]) {
+			if (second >= com.param[0]) {
 				output[i] = (sample(temp1[i]) / sample(2)) + (sample(temp2[i]) / sample(2));
 			}
 			else {
@@ -53,5 +55,7 @@ void mix::launch(const command_info& com) {
 }
 
 void mix::who_am_i() {
-	std::cout << "MIX";
+	std::cout << "=====================================================\n";
+	std::cout << "$ mix <$(extra_file)> <second> \nMix previous file from <second> with $(extra_file). \n";
+	std::cout << "=====================================================\n\n";
 }
