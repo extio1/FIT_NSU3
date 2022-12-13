@@ -35,28 +35,11 @@ void init(int* arr, const int nfragments, const int offset, const int fragsize) 
 	}
 }
 
-void pullL1() {
-	int* arr = new int[8192];
-	for (int i = 0; i < 8192; i++) {
-		arr[i] = (i + 1) % 8192;
-	}
-	int j = 0;
-	for (int i = 0; i < 8192 * 2; i++) {
-		j = arr[j];
-	}
-	if (j == 1123) {
-		printf("ASDASD");
-	}
-	delete[] arr;
-}
-
 int test(const int* arr, const int nfragments, const int fragsize) {
 	unsigned long long start, end; // хранят начало конец времени измерения в тактах
 	const int ntrav = 50;		   // число обходов 
 	const int nattemps = 50;	   // количество замеров (т.е. каждый замер выполняется ntrav обходов)
 	unsigned long long times[nattemps]; // массив для выбора наименьшего из замеров
-
-	pullL1();
 
 	for (int k = 0; k < nattemps; k++) { // цикл по количеству замеров
 		int j = 0;
@@ -97,11 +80,11 @@ int main() {
 		exit(1);
 	}
 
-	for (int i = 0; i < 1; i++) {							// для каждого из кэшей замеряется среднее время обращения к ячейке массива
-		for (int j = 2; j <=2; j++) {    // в зависимости от числа фрагментов
+	for (int i = 0; i < ncaches; i++) {							// для каждого из кэшей замеряется среднее время обращения к ячейке массива
+		for (int j = minfragments; j <= maxfragments; j++) {    // в зависимости от числа фрагментов
 			int offset = cachesize[i];	// в качестве отступа для обращения к следующему элементу выбирается число равное размеру
 										// тестируемого кэша
-			const int fragsize = cachesize[i] / j;			// количество элементов во фрагменте
+			const int fragsize = 4;			// количество элементов во фрагменте
 
 			init(arr, j, offset, fragsize); // заполнение массива для его последующего обхода
 			//print(arr, j, fragsize);
