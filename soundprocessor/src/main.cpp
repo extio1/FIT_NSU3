@@ -52,20 +52,24 @@ int main(int argc, char** argv) {
         proc.help();
         return 0;
     }
+ 
+    if (data.mode == 'c') {
+        configparser cnfgparser;
+        try {
+            cnfgparser.open(data.config_path);
+        }
+        catch (file_havent_opened fho) {
+            std::cerr << "Error while opening config file <" << fho.what_file() << ">.\n";
+            exit(fho.get_error_code());
+        }
 
-    configparser cnfgparser;
-    try {
-        cnfgparser.open(data.config_path);
-    }
-    catch(file_havent_opened fho){
-        std::cerr << "Error while opening config file <" << fho.what_file() <<">.\n";
-        exit(fho.get_error_code());
+        while (!cnfgparser.end_of_config()) {
+            proc.use(cnfgparser.next_command(data));
+        }
+
+        std::cout << "\n-----------==========Done!==========-----------\n";
     }
 
-    while (!cnfgparser.end_of_config()){
-        proc.use(cnfgparser.next_command(data));
-    } 
-    
-    std::cout << "\n-----------==========Done!==========-----------\n";
     return 0;
+    
 }
