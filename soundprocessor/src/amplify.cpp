@@ -18,15 +18,19 @@ void amplify::launch(const command_info& com) {
 
 	while (!inf.eof()) {
 		inf >> temp;
-		for (sample& i : temp) {
-			i *= param;
-		}
+		convert(temp, param);
 		outf << temp;
+	}
+}
+
+inline void amplify::convert(std::vector<sample>& temp, float param) {
+	for (sample& i : temp) {
+		i *= param;
 	}
 }
 
 void amplify::who_am_i() {
 	std::cout << "=====================================================\n";
 	std::cout << "$ amplify <paramenter> \nChange volume in <paramenter> times. \n";
-	std::cout << "=====================================================\n\n";
+	std::cout << "=====================================================\n";
 }
