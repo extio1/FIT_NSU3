@@ -57,5 +57,5 @@ void mix::launch(const command_info& com) {
 void mix::who_am_i() {
 	std::cout << "=====================================================\n";
 	std::cout << "$ mix <$(extra_file)> <second> \nMix previous file from <second> with $(extra_file). \n";
-	std::cout << "=====================================================\n\n";
+	std::cout << "=====================================================\n";
 }
