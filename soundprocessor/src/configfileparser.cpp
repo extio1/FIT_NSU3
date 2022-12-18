@@ -21,22 +21,25 @@ const command_info& configparser::next_command(const comdata& data) {
 	new_command();
 	
 	if (file_begin) {
-		command.input.push_back(data.input_path[0]);
 		file_begin = false;
-		output = "output1.wav";
+		command.input.push_back(data.input_path[0]);
+		output = "/temp/tmp1.wav";
 		command.output = output;
 	}
 	else {
 		command.input.push_back(output);
 		if (command_counter % 2) {
-			output = "output2.wav";
+			output = "/temp/tmp2.wav";
 			command.output = output;
 		}
 		else {
-			output = "output1.wav";
+			output = "/temp/tmp1.wav";
 			command.output = output;
 		}
 		command_counter++;
+	}
+	if (end_of_config()) {
+		command.output = data.output_path;
 	}
 
 	int counter = 0;
