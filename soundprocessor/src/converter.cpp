@@ -8,6 +8,7 @@
 #include <string>
 
 converter::~converter(){}
+mute::~mute(){}
 
 std::unique_ptr<converter> converterfabric::make_conv(const std::string& name) {
 	if (name == "copy") {
