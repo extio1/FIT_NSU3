@@ -35,6 +35,16 @@ int ascii_seq_to_int_le(const char* ascii, const int size) {
 	return num;
 }
 
+int ascii_seq_to_int(std::vector<char>& ascii, const int size) {
+	int num = 0;
+	for (int i = size - 1; i >= 0; i--) {
+		unsigned char piece = (ascii[i] < 0) ? (ascii[i] + 256) : ascii[i];
+		num <<= 8;
+		num += piece;
+	}
+	return num;
+}
+
 int ascii_seq_to_int(const char* ascii, const int size) {
 	int num = 0;
 	for (int i = size - 1; i >= 0; i--) {
