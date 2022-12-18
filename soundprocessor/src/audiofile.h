@@ -6,6 +6,7 @@
 #include <iostream>
 
 class WavWriter;
+class WavReader;
 class sample;
 
 class wavheader{
@@ -47,6 +48,7 @@ public:
 private:
 	
 	std::unique_ptr<WavWriter> writer;
+	std::unique_ptr<WavReader> reader;
 
 	unsigned int cur_pos;
 	unsigned int data_size;
