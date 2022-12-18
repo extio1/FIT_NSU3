@@ -2,12 +2,13 @@
 #include "convasciiint.h"
 #include "writer.h"
 #include "excpts.h"
+#include "reader.h"
 
 #include <fstream>
 #include <vector>
 #include <memory>
 
-wavdata::wavdata(): writer(std::make_unique<WavWriter>()), size_data_chunk(512), bytes_per_sample(2), cur_pos(0), data_pos_begin(0), data_size(0) {}
+wavdata::wavdata(): writer(std::make_unique<WavWriter>()), reader(std::make_unique<WavReader>()), size_data_chunk(512), bytes_per_sample(2), cur_pos(0), data_pos_begin(0), data_size(0) {}
 
 void wavdata::skip(int size) {
 	cur_pos += size * bytes_per_sample;
@@ -39,9 +40,7 @@ void wavdata::find_begin(std::ifstream& in, const char* name) {
 	if (!data_was_found)
 		throw wrong_header(name, "data");
 
-	char buffer[4];
-	in.read(buffer, 4);
-	data_size = ascii_seq_to_int_le(buffer, 4);
+	data_size = reader->read_int_b(in, 4);
 
 	data_pos_begin = in.tellg();
 	cur_pos = data_pos_begin;
@@ -60,8 +59,7 @@ void wavdata::read(std::vector<unsigned int>& outarr, std::ifstream& f) {
 	int new_pos = 0;
 	for (int i = 0; i < size_data_chunk; i++) {
 		if (!f.eof()) {
-			f.read(buffer, bytes_per_sample);
-			outarr[new_pos++] = ascii_seq_to_int_le(buffer, bytes_per_sample);
+			outarr[new_pos++] = reader->read_int_b(f, bytes_per_sample);
 		}
 		else {
 			outarr.resize(i);
