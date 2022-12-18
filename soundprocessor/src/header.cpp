@@ -4,6 +4,7 @@
 #include "convasciiint.h"
 #include "writer.h"
 #include "excpts.h"
+#include "reader.h"
 
 wavheader::wavheader() : average_bytes_per_sec(0), block_align(0),
 						 comp_code(0), n_of_channels(0), sample_rate(0), 
@@ -12,14 +13,13 @@ wavheader::wavheader() : average_bytes_per_sec(0), block_align(0),
 void wavheader::read_header(std::ifstream& wavin, const char* filename) {
 	char buffer[5];
 	buffer[4] = '\0';
+	WavReader reader;
 
 	wavin.read(buffer, 4);
-	
 	if(std::string(buffer).compare("RIFF"))
 		throw wrong_header(filename, buffer);
-
-	wavin.read(buffer, 4);
-	RIFF_chunk_size = ascii_seq_to_int_le(buffer, 4);
+	
+	RIFF_chunk_size = reader.read_int_b(wavin, 4);
 
 	wavin.read(buffer, 4);
 	if (std::string(buffer).compare("WAVE"))
@@ -33,23 +33,12 @@ void wavheader::read_header(std::ifstream& wavin, const char* filename) {
 	if (ascii_seq_to_int_le(buffer, 4) != 16)
 		throw wrong_header(filename, buffer);
 
-	wavin.read(buffer, 2);
-	comp_code = ascii_seq_to_int_le(buffer, 2);
-
-	wavin.read(buffer, 2);
-	n_of_channels = ascii_seq_to_int_le(buffer, 2);
-
-	wavin.read(buffer, 4);
-	sample_rate = ascii_seq_to_int_le(buffer, 4);
-
-	wavin.read(buffer, 4);
-	average_bytes_per_sec = ascii_seq_to_int_le(buffer, 4);
-
-	wavin.read(buffer, 2);
-	block_align = ascii_seq_to_int_le(buffer, 2);
-
-	wavin.read(buffer, 2);
-	sign_bits_per_sample = ascii_seq_to_int_le(buffer, 2);
+	comp_code = reader.read_int_b(wavin, 2);
+	n_of_channels = reader.read_int_b(wavin, 2);
+	sample_rate = reader.read_int_b(wavin, 4);
+	average_bytes_per_sec = reader.read_int_b(wavin, 4);
+	block_align = reader.read_int_b(wavin, 2);
+	sign_bits_per_sample = reader.read_int_b(wavin, 2);
 }
 
 void wavheader::genarate_header(std::ofstream& f) {
