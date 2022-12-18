@@ -18,5 +18,5 @@ void copy::launch(const command_info& com) {
 void copy::who_am_i() {
 	std::cout << "=====================================================\n";
 	std::cout << "$ copy \nCopies previous file to output file. \n";
-	std::cout << "=====================================================\n\n";
+	std::cout << "=====================================================\n";
 }
