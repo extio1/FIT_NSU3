@@ -85,7 +85,7 @@ inline void configparser::next() {
 	buffer[0] = 0;
 	do {
 		getline(config, buffer);
-	} while (buffer[0] == '#');
+	} while ((buffer[0] == '#' || buffer[0] == 0) && (!end_of_config()));
 }
 
 
