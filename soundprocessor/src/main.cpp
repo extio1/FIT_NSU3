@@ -64,7 +64,9 @@ int main(int argc, char** argv) {
         }
 
         while (!cnfgparser.end_of_config()) {
-            proc.use(cnfgparser.next_command(data));
+            const command_info& ci = cnfgparser.next_command(data);
+            if(!cnfgparser.end_of_config())
+                proc.use(ci);
         }
 
         std::cout << "\n-----------==========Done!==========-----------\n";
