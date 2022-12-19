@@ -3,6 +3,8 @@
 
 sample::sample(): data(0) {}
 sample::sample(unsigned int d){
+	if(d == 0)
+		data = 0;
 	if (d > SHRT_MAX) {
 		data = d - USHRT_MAX;
 	}
