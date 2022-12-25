@@ -5,7 +5,7 @@
 #include <fstream>
 #include <iterator>
 #include <memory>
-#include "expts.h"
+#include "excpts.h"
 #include "tupleio.h"
 
 
@@ -16,6 +16,7 @@ private:
 	std::size_t offset;
 	std::ifstream& input_stream;
 	std::tuple<TupleTypes...>* line_tuple;
+	std::size_t line_counter;
 	
 	class CsvIterator : public std::input_iterator_tag {
 	public:
@@ -25,7 +26,7 @@ private:
 			for (int i = 0; i < offset; i++) {
 				getline(container.input_stream, line_str);
 				if (container.input_stream.eof()) {
-					throw offset_error();
+					throw offset_error(offset);
 				}
 			}
 		}
@@ -40,9 +41,6 @@ private:
 
 		CsvIterator& operator++() {
 			container.read_next_line();
-			if (container.input_stream.eof()) {
-				state = 0;
-			}
 			return *this;
 		}
 
@@ -55,13 +53,14 @@ private:
 		bool operator==(const CsvIterator& other) {
 			if (state != other.state)
 				return false;
-			//if (*line_tuple != other->line_tuple)
-			//	return false;
 			return true;
 		}
 
 		bool operator!=(const CsvIterator& other) {
-			return !(*this == other);
+			bool res = !(*this == other);
+			if (container.input_stream.eof())
+				state = 0;
+			return res;
 		}
 
 		std::tuple<TupleTypes...> operator*() {
@@ -75,11 +74,17 @@ private:
 	};
 
 	bool read_next_line() {
-		auto new_tuple_ptr = read_tuple(input_stream, line_tuple, format);
+		++line_counter;
 		if (input_stream.eof())
 			return 0;
-
-		line_tuple = new_tuple_ptr;
+		try {
+			auto new_tuple_ptr = read_tuple(input_stream, line_tuple, format);
+			line_tuple = new_tuple_ptr;
+		}
+		catch (cell_error ce) {
+			std::cerr << ce.what();
+			std::cerr << "Error in data row " << line_counter << " col " << ce.get_col() << '\n';
+		}
 
 		return 1;
 	}
@@ -88,7 +93,7 @@ private:
 public:
 
 	explicit CsvParser(std::ifstream& f, std::size_t o = 0, char cd = ',', char ld = '\n', char ss = '"') :
-		input_stream(f), offset(o), format(cd, ld, ss) {
+		input_stream(f), offset(o), format(cd, ld, ss), line_counter(0) {
 		line_tuple = new std::tuple<TupleTypes...>;
 	}
 
@@ -98,7 +103,13 @@ public:
 		return it;
 	}
 
+	void configure(char cell = ',', char line = '\n', char screen = '"') {
+		format.cell_delim = cell;
+		format.line_delim = line;
+		format.screen_sym = screen;
+	}
+
 	CsvIterator end() { return CsvIterator(false, *this); }
-	~CsvParser(){ delete line_tuple; }
+	~CsvParser() { delete line_tuple; }
 
 };
