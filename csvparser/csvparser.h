@@ -8,7 +8,6 @@
 #include "excpts.h"
 #include "tupleio.h"
 
-
 template <typename... TupleTypes>
 class CsvParser {
 private:
@@ -17,16 +16,19 @@ private:
 	std::ifstream& input_stream;
 	std::tuple<TupleTypes...>* line_tuple;
 	std::size_t line_counter;
-	
+
 	class CsvIterator : public std::input_iterator_tag {
 	public:
 		CsvIterator(const bool s, CsvParser& c) : state(s), container(c) { }
 		CsvIterator(const bool s, std::size_t offset, CsvParser& c) : state(s), container(c) {
 			std::string line_str;
-			for (int i = 0; i < offset; i++) {
+			for (std::size_t i = 0; i < offset; i++) {
 				getline(container.input_stream, line_str);
 				if (container.input_stream.eof()) {
-					throw offset_error(offset);
+					//throw offset_error(offset, i);
+					std::cerr << offset << " offset is bigger that avialible";
+					state = 0;
+					break;
 				}
 			}
 		}
