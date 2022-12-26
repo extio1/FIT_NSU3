@@ -4,6 +4,7 @@
 #include <vector>
 #include <sstream>
 #include "excpts.h"
+#include "complex.h"
 
 struct Format {
     char cell_delim;
@@ -43,8 +44,9 @@ void read_token(const std::string& token_str, void* place, std::size_t col) {
     std::stringstream check_ss;
     check_ss << new_arg;
 
-    if (token_str.size() != check_ss.str().size()) {
-        throw cell_error(col+1);
+    unsigned int read = check_ss.str().size();
+    if (token_str.size() != read) {
+        throw cell_error(col + read + 1);
     }
 
     ArgT* ptr = new (place) ArgT;
@@ -69,7 +71,7 @@ std::string parse_line(std::string& line, char delim, std::size_t& pos_token_beg
 template<typename... TupleTypes, std::size_t... index>
 void assign_cell_tuple(std::tuple<TupleTypes...>& t, std::index_sequence<index...>, std::string& line, Format& format) {
     std::vector<void*> cells;
-    (cells.push_back(&std::get<index>(t)),...);
+    (cells.push_back(&std::get<index>(t)), ...);
 
     std::size_t pos_next_cell = 0;
     ((read_token<TupleTypes>(parse_line(line, format.cell_delim, pos_next_cell), cells.at(index), pos_next_cell)), ...);
@@ -77,7 +79,7 @@ void assign_cell_tuple(std::tuple<TupleTypes...>& t, std::index_sequence<index..
 
 template <typename... TupleTypes>
 std::tuple<TupleTypes...>* read_tuple(std::ifstream& os, std::tuple<TupleTypes...>* t, Format& format) {
-    std::string line;   
+    std::string line;
     getline(os, line, format.line_delim);
     delete_sym(line, format.screen_sym);
 
