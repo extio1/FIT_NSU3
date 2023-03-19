@@ -2,50 +2,71 @@
 #include <iostream>
 #include <string>
 #include <iomanip>
+#include <fstream>
 using namespace std;
 
 Matrix::Matrix() : n(0), mat(nullptr) {}
-Matrix::Matrix(int size) : n(size) { mat = new float[1ll * size * size]; }
+
+Matrix::Matrix(const size_t size) : n(size) { 
+	mat = new float[1ll * size * size]; 
+}
+
+Matrix::Matrix(const size_t size, const char* path) : Matrix(size) {
+	read_from_file(path);
+}
+
 Matrix::Matrix(const Matrix& other) : n(other.n) {  // заменить other.n на n
 	mat = new float[1ll * other.n * other.n];
 	for (int i = 0; i < other.n; i++)
 		for (int j = 0; j < other.n; j++)
 			mat[i * other.n + j] = other.mat[i * other.n + j];
 }
+
 Matrix::Matrix(Matrix&& other) noexcept : n(move(other.n)) {
 	mat = other.mat;
 	other.mat = nullptr;
 }
 
-void Matrix::entry_arr() {
+void Matrix::read_by_stream(istream& stream){
 	string strmat;
-	cin.get();
 	for (int i = 0; i < n; i++) {
-		getline(cin, strmat);
+		getline(stream, strmat);
 		int k = 0;
 		int begin = 0;
 		int length = 0;
-		for (int j = 0; j < strmat.size(); j++) { //заполнение строк матрицы
+		for (int j = 0; j < strmat.size(); ++j) { //заполнение строк матрицы
 			if (strmat[j] == ' ' || j == strmat.size() - 1) {
 				mat[i * n + k] = atof((strmat.substr(begin, length)).c_str());
 				begin = j + 1;
 				length = 1;
-				k++;
+				++k;
 			}
 			else {
-				length++;
+				++length;
 			}
 		}
 	}
 }
-void Matrix::print_matrix() const {
-	int size = n * n;
+
+std::ostream& operator<<(std::ostream &os, const Matrix& matrix){
+	float* mat = matrix.begin();
+	size_t n = matrix.get_size();
+	size_t size = n * n;
 	for (int i = 0; i < size; i++) {
-		cout << setw(11) << mat[i] << ' ';
+		os << setw(11) << mat[i] << ' ';
 		if ((i + 1) % n == 0 && i != 0)
-			cout << '\n';
+			os << '\n';
 	}
+
+	return os;
 }
+
+void Matrix::read_from_file(const char* path){
+	ifstream filestr(path);
+	read_by_stream(filestr);
+	filestr.close();
+}
+
 int Matrix::get_size() const { return n; }
 
 Matrix& Matrix::operator=(const Matrix& other) {
@@ -138,6 +159,7 @@ Matrix operator+(const Matrix& a, const Matrix& b) {
 Matrix operator-(const Matrix& a, const Matrix& b) {
 	int n = a.n;
 	Matrix temp(n);
+	
 	float* aptr = a.mat;
 	float* bptr = b.mat;
 	float* tempptr = temp.mat;
@@ -291,7 +313,7 @@ float find_max_row(const Matrix& m) {
 }
 
 
-Matrix inverse_matrix(const Matrix& aMat, const int m) {
+Matrix inverse_matrix(const Matrix& aMat, const size_t m) {
 	int n = aMat.get_size();
 	Matrix rMat(n);
 	Matrix bMat(n);
